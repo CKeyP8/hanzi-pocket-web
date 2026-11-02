@@ -25,6 +25,7 @@ export default defineConfig({
       ]
     },
     workbox: {
+      clientsClaim: true,
       globPatterns: ['**/*.{js,css,html,png,svg,json,woff2,webmanifest}'],
       maximumFileSizeToCacheInBytes: 30 * 1024 * 1024,
       navigateFallback: `${base}index.html`, cleanupOutdatedCaches: true,
