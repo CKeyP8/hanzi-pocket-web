@@ -1,0 +1,26 @@
+Hanzi Pocket 2.0 data attribution
+
+HSK catalog: 2025-11 HSK examination syllabus, levels 1-5 (3,600 entries).
+Original vocabulary-level facts: Chinese Testing International / CLEC.
+https://www.chinesetest.cn/
+Machine-readable extraction: profesorm/hsk30, CC BY 4.0.
+https://github.com/profesorm/hsk30
+Snapshot commit: f3163ca6edff5d6b1e81afb1cd716bb78f5a958a
+https://creativecommons.org/licenses/by/4.0/
+Changes: retained levels 1-5; removed numeric homograph suffixes; added stable
+IDs, normalized keys, and CC-CEDICT English glosses. Source pinyin is retained.
+The converted catalog includes CC-CEDICT definitions under CC BY-SA 4.0.
+See DICTIONARY-LICENSE.txt and HSK-LICENSE.txt.
+The catalog follows the examination syllabus used by FLTRP New HSK Course.
+It does not reproduce the textbook's chapters, lessons, recordings, or artwork.
+No endorsement by CTI, CLEC, FLTRP, or data contributors is claimed.
+
+Stroke data: Hanzi Writer data 2.0.1, derived from Make Me a Hanzi / Arphic fonts.
+https://github.com/chanind/hanzi-writer-data
+https://github.com/skishore/makemeahanzi
+Arphic Public License; full terms included in STROKES-LICENSE.txt.
+Changes: selected all 1,527 distinct characters in HSK levels 1-5 and grouped
+their unmodified stroke/median records into 16 local JSON shards.
+The Hanzi Writer software is MIT licensed; its own notice is retained by bundling.
+
+Snapshot prepared 2026-10-23. All essential data is bundled with the iOS app.

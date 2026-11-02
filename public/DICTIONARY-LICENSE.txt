@@ -1,0 +1,17 @@
+CC-CEDICT dictionary data
+Source: CC-CEDICT contributors, distributed by MDBG
+https://www.mdbg.net/chinese/dictionary?page=cedict
+https://cc-cedict.org/
+Licensed under Creative Commons Attribution-ShareAlike 4.0 International
+https://creativecommons.org/licenses/by-sa/4.0/legalcode
+
+The bundled dictionary.json is a format conversion of the official CC-CEDICT
+download. Simplified and traditional character keys share pronunciation and
+English-definition alternatives. Definition separators were changed from
+slashes to semicolons. No entries were added or editorially changed.
+The converted dictionary is distributed under the same CC BY-SA 4.0 license.
+The conversion script is included in scripts/build-dictionary.py.
+Snapshot downloaded: 2026-10-09.
+
+The application source is separate from the dictionary data. Vocabulary and
+definitions entered or edited by the user stay on the user's device.
