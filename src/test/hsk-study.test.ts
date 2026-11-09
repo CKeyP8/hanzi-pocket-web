@@ -14,11 +14,32 @@ beforeEach(async()=>{db=new PocketDB(`hsk-study-${crypto.randomUUID()}`);await d
 afterEach(async()=>{await db.delete();});
 
 describe('Persistent HSK learning',()=>{
-  it('resumes unseen and missed words after database close/reopen, before correct words',async()=>{
+  it.each([1,2,3,4,5])('does not loop missed cards while other HSK %i words wait',async level=>{
+    const scope=catalog.filter(w=>w.level===level);let s=await startHSKSession(db,scope,level);const seen=new Set<string>();
+    expect(new Set(s.queue).size).toBe(scope.length);
+    for(let i=0;i<24;i++){
+      expect(seen.has(s.queue[0]),`HSK ${level} repeated ${s.queue[0]} after only ${seen.size} distinct words`).toBe(false);
+      seen.add(s.queue[0]);await answerHSKCard(db,s,scope,i%4!==0,100+i);s=(await db.hskSessions.get(level))!;
+    }
+    expect(seen.size).toBe(24);expect(s.queue).toHaveLength(scope.length-24);
+  });
+  it('does not collapse a familiar level into one repeatedly missed word',async()=>{
+    const scope=catalog.filter(w=>w.level===1).slice(0,16);
+    await db.hskProgress.bulkPut(scope.map(w=>({wordId:w.id,level:1,attempts:1,correct:1,incorrect:0,lastCorrect:true,lastSeenAt:1,revision:1})));
+    const s=await startHSKSession(db,scope,1),missed=s.queue[0];await answerHSKCard(db,s,scope,false,100);
+    const next=(await db.hskSessions.get(1))!;expect(next.queue).toHaveLength(15);expect(next.queue).not.toContain(missed);
+  });
+  it('spaces a miss at the end of a pass away from the next card',async()=>{
+    const scope=catalog.filter(w=>w.level===1).slice(0,16);let s=await startHSKSession(db,scope,1);
+    for(let i=0;i<15;i++){await answerHSKCard(db,s,scope,true,100+i);s=(await db.hskSessions.get(1))!;}
+    const last=s.queue[0];await answerHSKCard(db,s,scope,false,200);s=(await db.hskSessions.get(1))!;
+    expect(s.queue).toHaveLength(16);expect(s.queue.indexOf(last)).toBeGreaterThanOrEqual(12);
+  });
+  it('resumes remaining unseen words after close/reopen while retaining misses for the next pass',async()=>{
     let s=await startHSKSession(db,words,1);const correct=s.queue[0];await answerHSKCard(db,s,words,true,100);
     s=(await db.hskSessions.get(1))!;const missed=s.queue[0];await answerHSKCard(db,s,words,false,200);
     const queue=(await db.hskSessions.get(1))!.queue,name=db.name;db.close();db=new PocketDB(name);
-    s=await startHSKSession(db,words,1);expect(s.queue).toEqual(queue);expect(s.queue).not.toContain(correct);expect(s.queue).toContain(missed);
+    s=await startHSKSession(db,words,1);expect(s.queue).toEqual(queue);expect(s.queue).not.toContain(correct);expect(s.queue).not.toContain(missed);
     expect(hskStats(words,await db.hskProgress.toArray())).toEqual({seen:2,unseen:6,missed:1});
     expect(await db.words.count()).toBe(0);expect(await db.reviews.count()).toBe(0);
   });
@@ -37,8 +58,9 @@ describe('Persistent HSK learning',()=>{
     expect(seen.size).toBe(words.length);expect(s.queue).toHaveLength(words.length);
     expect(hskStats(words,await db.hskProgress.toArray())).toEqual({seen:8,unseen:0,missed:0});
     const missed=s.queue[0];await answerHSKCard(db,s,words,false,200);s=await startHSKSession(db,words,1);
-    expect(s.queue).toEqual([missed]);await answerHSKCard(db,s,words,true,201);s=(await db.hskSessions.get(1))!;
-    expect(s.queue).toHaveLength(8);expect(s.queue[0]).not.toBe(missed);
+    expect(s.queue).toHaveLength(7);expect(s.queue).not.toContain(missed);
+    for(let i=0;i<7;i++){await answerHSKCard(db,s,words,true,201+i);s=(await db.hskSessions.get(1))!;}
+    expect(s.queue).toHaveLength(8);expect(s.queue[0]).toBe(missed);
   });
   it('restores seen status, last answer and exact queue with Undo',async()=>{
     const s=await startHSKSession(db,words,1);await answerHSKCard(db,s,words,false,100);
