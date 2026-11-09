@@ -10,11 +10,15 @@ export function hskStats(words:CatalogWord[],progress:HSKProgress[]){
 
 function buildQueue(words:CatalogWord[],progress:HSKProgress[],preferred:string[]=[],avoidFirst?:string){
   const states=new Map(progress.map(p=>[p.wordId,p]));
-  const priority=words.filter(w=>!states.has(w.id)||!states.get(w.id)!.lastCorrect);
-  const allowed=new Set((priority.length?priority:words).map(w=>w.id));
+  const unseen=words.filter(w=>!states.has(w.id)),missed=words.filter(w=>states.has(w.id)&&!states.get(w.id)!.lastCorrect);
+  const allowed=new Set((unseen.length?[...unseen,...missed]:words).map(w=>w.id));
   const kept=[...new Set(preferred.filter(id=>allowed.has(id)))],keptIds=new Set(kept);
-  const queue=[...kept,...shuffle([...allowed].filter(id=>!keptIds.has(id)))];
-  if(!priority.length&&queue.length>1&&queue[0]===avoidFirst)queue.push(queue.shift()!);
+  // Consume each pass once. Misses retain their progress and lead the next pass,
+  // rather than repeatedly displacing the words still waiting in this pass.
+  const queue=kept.length
+    ? unseen.length?[...kept.filter(id=>!states.has(id)),...shuffle(unseen.filter(w=>!keptIds.has(w.id)).map(w=>w.id)),...kept.filter(id=>states.has(id))]:kept
+    : [...shuffle(unseen.map(w=>w.id)),...shuffle(missed.map(w=>w.id)),...(!unseen.length?shuffle(words.filter(w=>states.get(w.id)?.lastCorrect).map(w=>w.id)):[])];
+  if(queue.length>1&&queue[0]===avoidFirst){const last=queue.shift()!;queue.splice(Math.min(12,queue.length),0,last);}
   return queue;
 }
 
@@ -34,7 +38,7 @@ export async function answerHSKCard(database:PocketDB,session:HSKSession,words:C
     const wordId=active.queue[0];if(!wordId)throw new Error('No HSK word is available.');
     const previous=await database.hskProgress.get(wordId)??null;
     const next:HSKProgress={wordId,level:active.level,attempts:(previous?.attempts??0)+1,correct:(previous?.correct??0)+(correct?1:0),incorrect:(previous?.incorrect??0)+(correct?0:1),lastCorrect:correct,lastSeenAt:now,revision:(previous?.revision??0)+1};
-    const queue=active.queue.slice(1);if(!correct)queue.splice(Math.min(3,queue.length),0,wordId);
+    const queue=active.queue.slice(1);
     await database.hskProgress.put(next);
     const progress=await database.hskProgress.where('level').equals(active.level).toArray();
     const scope=new Set(active.scopeIds),scopeWords=words.filter(w=>scope.has(w.id));
