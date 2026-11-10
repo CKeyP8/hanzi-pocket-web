@@ -12,21 +12,17 @@ export default defineConfig({
     disable: native,
     scope: base,
     registerType: 'prompt',
-    includeAssets: ['apple-touch-icon.png', 'favicon.svg'],
+    includeAssets: ['apple-touch-icon.png', 'app-icon.png'],
     manifest: {
       name: 'Hanzi Pocket', short_name: 'Hanzi Pocket',
       description: 'A personal offline Chinese vocabulary companion.',
       theme_color: '#F5F0E7', background_color: '#F5F0E7',
       id: base, display: 'standalone', start_url: base, scope: base, lang: 'en',
-      icons: [
-        { src: `${base}icon-192.png`, sizes: '192x192', type: 'image/png' },
-        { src: `${base}icon-512.png`, sizes: '512x512', type: 'image/png' },
-        { src: `${base}icon-maskable-512.png`, sizes: '512x512', type: 'image/png', purpose: 'maskable' }
-      ]
+      icons: [{src:`${base}app-icon.png`,sizes:'1254x1254',type:'image/png',purpose:'any maskable'}]
     },
     workbox: {
       clientsClaim: true,
-      globPatterns: ['**/*.{js,css,html,png,svg,json,woff2,webmanifest}'],
+      globPatterns: ['**/*.{js,css,html,png,svg,json,txt,woff2,webmanifest}'],
       maximumFileSizeToCacheInBytes: 30 * 1024 * 1024,
       navigateFallback: `${base}index.html`, cleanupOutdatedCaches: true,
       runtimeCaching: []

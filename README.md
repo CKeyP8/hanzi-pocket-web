@@ -1,6 +1,6 @@
 # Hanzi Pocket
 
-A light Editorial Focus Chinese vocabulary web app, with HSK 1–5, unlimited swipe reviews, a personal Pocket, remembered learning progress, local Mandarin pronunciation and bundled stroke animations.
+Hanzi Pocket 3.0: the approved light Editorial Focus app with full HSK 1–5, official CSCA STEM/foundation vocabulary, unlimited Flashcards and Dictation, mixed personal collections, generated listening quizzes, an offline dictionary and cumulative stroke discovery. The selected Fire Horse portrait is the app and Home Screen icon.
 
 ## GitHub Pages
 
@@ -37,3 +37,15 @@ The default build is for `/`. For a project Pages URL, set `POCKET_BASE_PATH` to
 Dictionary: CC-CEDICT contributors / MDBG, CC BY-SA 4.0. HSK catalog: CTI syllabus / profesorm, CC BY 4.0; English glosses use CC-CEDICT. Stroke data: Make Me a Hanzi / Arphic Public License. Attribution and license details are included in `public/DATA-ATTRIBUTION.txt`, `DICTIONARY-LICENSE.txt`, `HSK-LICENSE.txt` and `STROKES-LICENSE.txt` and in the app's Settings.
 
 The native iPhone project is maintained separately; this repository publishes the browser/Home Screen web app.
+
+## Version 3 release and data preservation
+
+The approved experience is bootstrapped by `src/production.ts`; the tested interface, local icon renderer and question generator are bundled under `public/pocket-*`. No Sites, login or paid AI service is required. HSK has 3,600 entries; official CSCA STEM has 950 source rows / 948 distinct cards and foundation has 5,164 rows / 5,062 cards. Source references and licensing remain bundled. Listening sentences are original local exercises rather than official past questions.
+
+On the same app origin/path, `src/experience-storage.ts` reads the previous Pocket database once, carries saved words and edits, collection membership, HSK history, latest results and remaining queues into the new experience, and archives the original records atomically. Original tables are retained. New records use a path-specific IndexedDB store with serialized writes and conflict detection across windows. Preview storage is not automatically imported. Failed migration leaves the old records intact; a boot-error fallback can open the previous interface. The migration is idempotent.
+
+Settings offers full JSON backups, restoration of both original version-1 and current backups, additive CSV import/export and offline readiness. A recovery snapshot is retained before importing. Manual words can use the offline dictionary; saved words remain editable. Removing a word from Pocket preserves library entries and learning history.
+
+Next stroke draws one additional permanent stroke. Reset clears; Replay leaves a complete character. The 1,527-character bundled stroke pack covers every HSK 1–5 character; unsupported additional technical/personal characters show an availability message. Downloaded Mandarin device voices provide pronunciation. Workbox precaches the complete release, including curriculum, scripts, dictionary, stroke data and icons; wait for Ready for offline use in Settings.
+
+The chosen icon is included unchanged as a 1254 × 1254 PNG, accurately declared in the manifest; browsers scale it for the device. No image generation or cloud call occurs in the app. The source of the previous interface is retained for recovery, and the same GitHub Pages URL is used.
