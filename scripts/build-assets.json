@@ -94,6 +94,71 @@
       "path": "strokes/15.json",
       "bytes": 304317,
       "sha256": "c326b4dd204b793a1776fab588af32955e01040609be74e396584435b59ea91d"
+    },
+    {
+      "path": "CSCA-SOURCES.txt",
+      "bytes": 2925,
+      "sha256": "a06592c0b9be9faa380b828ab56dfbea09fb8547de5711daeb06ab671a9d147b"
+    },
+    {
+      "path": "HANZI-WRITER-LICENSE.txt",
+      "bytes": 1079,
+      "sha256": "7735d83cdf892c8db41c27103b42c89b4b63149770c1e08ae13cbbebb81da637"
+    },
+    {
+      "path": "LUCIDE-LICENSE.txt",
+      "bytes": 3208,
+      "sha256": "b495047bd93a9b06913511076f504daba17d5bbeb3e0650f3bb53a4220329c57"
+    },
+    {
+      "path": "app-icon.png",
+      "bytes": 1775812,
+      "sha256": "83a5ba484ae3239a63a42b0a4fdb0c7dbc57157c44382692a52535cfdc3dba89"
+    },
+    {
+      "path": "apple-touch-icon.png",
+      "bytes": 1775812,
+      "sha256": "83a5ba484ae3239a63a42b0a4fdb0c7dbc57157c44382692a52535cfdc3dba89"
+    },
+    {
+      "path": "csca-catalog.json",
+      "bytes": 1779908,
+      "sha256": "09c0b34fa3c0c121a6f957124f5cc235e77e69a0915ab6ef77c419b46c0e9c5b"
+    },
+    {
+      "path": "hanzi-writer.min.js",
+      "bytes": 36968,
+      "sha256": "17b11a1e025b780cb518d49b30faacc770dfa7fbc387aa3876e3e5c1bd31e642"
+    },
+    {
+      "path": "pocket-app.js",
+      "bytes": 45855,
+      "sha256": "5839e575ad3efb2009314a3b25db44ae3a75f8add8730b58e14c539059bd1a6f"
+    },
+    {
+      "path": "pocket-lucide.js",
+      "bytes": 402312,
+      "sha256": "5e943127343691a9b640d959bbfbdeb742f4a99e0ebc17a4fa77e94654e5318b"
+    },
+    {
+      "path": "pocket-quiz.js",
+      "bytes": 7591,
+      "sha256": "43c02071b9cba18b30c088e7af55350aee71d275f55f0becf7e996d975269b2f"
+    },
+    {
+      "path": "pocket-strokes.js",
+      "bytes": 5620,
+      "sha256": "127e407b5fc26c3d07e5de0e1865e4d9aa81823d3dde4cecef62763250aedf70"
+    },
+    {
+      "path": "pocket-style.css",
+      "bytes": 18061,
+      "sha256": "07d27ac7343498b9251019401d96223bb77dc11510b4ecd1f9435ca0f3aa2eb3"
+    },
+    {
+      "path": "stem-data.json",
+      "bytes": 4835,
+      "sha256": "9a56b6c0b18fb9df5561c283c58d442279d20297e08a00ab34054f9e54adc243"
     }
   ]
 }
