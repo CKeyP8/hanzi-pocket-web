@@ -1,0 +1,53 @@
+Hanzi Pocket — CSCA vocabulary coverage
+Source check: 9 November 2026
+
+Programme reference
+Official CSCA STEM Chinese Examination Syllabus, 2025 edition:
+https://csca.cn/files/CSCA考试大纲-理科中文-2025版.pdf
+Current preparation page: https://csca.cn/about/testprep
+The linked syllabus is labelled 2025. The vocabulary PDFs have no separate
+edition date on their title pages. No newer syllabus was located in this check.
+
+STEM Chinese vocabulary
+https://csca.cn/files/理科中文词汇表.pdf
+All 950 vocabulary rows: beginner 300, intermediate 300, advanced 350.
+948 distinct character/pronunciation cards cover those rows. 余数 and 之 occur
+in more than one source level; one card retains all of its source references.
+The source also contains 88 expression patterns, with examples, after the word
+tables. Those expression lessons are not vocabulary cards or an exam simulator.
+
+Foundation Chinese vocabulary
+https://csca.cn/files/基础中文词汇表.pdf
+All 5,164 vocabulary rows: beginner 2,093, intermediate 1,976, advanced 1,095.
+5,062 distinct character/pronunciation cards cover those rows. Source rows
+distinguished only by part of speech share a card and dictionary senses.
+The grammar lessons following the word tables are outside the word decks.
+
+Editorial method
+Common terms, pronunciations and list membership were checked against the
+official tables. English definitions are from CC-CEDICT (CC BY-SA 4.0) plus
+independently written Hanzi Pocket technical glosses. They are study aids,
+not official CSCA translations. See DICTIONARY-LICENSE.txt.
+No official examples, textbook chapters, syllabus prose or PDF artwork are
+reproduced in the app. Official PDFs are linked for reference.
+This is an independent study app with no claimed CSCA endorsement.
+
+Extraction checks
+Every source vocabulary row is represented by a card and a level/row reference.
+Source numbering typos for foundation 礼物 and 误解 are retained as printed-row
+references; stable identity uses row order. An identical repeated 重点 row at a
+PDF page boundary is counted once. PH 值 is joined into PH值, and the two
+readings of 量 are displayed as liàng / liáng. No vocabulary row is dropped.
+The verb 测量 uses the dictionary reading cèliáng in place of the table's
+cèliàng. The original vocabulary membership is unchanged.
+
+SHA-256 of retrieved official files
+STEM: 5144579cf5faa7595fdba69431823d7b71d9f326ce7472cf1ad1f13678583f83
+Foundation: a11dd477fdea94605037a7b005ead733630920996dbeb18a01ca6eed0f8751e1
+Syllabus: 774026277e650a02321467e11b62973cd072b3f0416a5ad241139f4cb242b15f
+
+Earlier preview saves
+Existing saved terms, custom collections and learning records are preserved.
+26 former sample IDs map into official STEM cards. Six saved terms outside
+that list remain accessible in the user's Pocket, with an earlier-preview
+label; they are excluded from official decks. Daily-app data is separate.
