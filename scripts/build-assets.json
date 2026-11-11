@@ -97,8 +97,8 @@
     },
     {
       "path": "CSCA-SOURCES.txt",
-      "bytes": 2925,
-      "sha256": "a06592c0b9be9faa380b828ab56dfbea09fb8547de5711daeb06ab671a9d147b"
+      "bytes": 4099,
+      "sha256": "53c3d2bb54b3ccc1d01bec767a3dc25293957cd5173f44d66ee8596c2b6e00c2"
     },
     {
       "path": "HANZI-WRITER-LICENSE.txt",
@@ -122,8 +122,8 @@
     },
     {
       "path": "csca-catalog.json",
-      "bytes": 1779908,
-      "sha256": "09c0b34fa3c0c121a6f957124f5cc235e77e69a0915ab6ef77c419b46c0e9c5b"
+      "bytes": 1804501,
+      "sha256": "f54bc38f8592f439b30cce60be50f64bd6907c53ab5352822b2994bb7ea0c567"
     },
     {
       "path": "hanzi-writer.min.js",
@@ -132,8 +132,8 @@
     },
     {
       "path": "pocket-app.js",
-      "bytes": 45855,
-      "sha256": "5839e575ad3efb2009314a3b25db44ae3a75f8add8730b58e14c539059bd1a6f"
+      "bytes": 48450,
+      "sha256": "d3e853b8a8ed165ef8007ee88dff6abe59adf7f63c10047e87b7bd6a1dbd10e4"
     },
     {
       "path": "pocket-lucide.js",
@@ -152,8 +152,8 @@
     },
     {
       "path": "pocket-style.css",
-      "bytes": 18061,
-      "sha256": "07d27ac7343498b9251019401d96223bb77dc11510b4ecd1f9435ca0f3aa2eb3"
+      "bytes": 19002,
+      "sha256": "6573de42c6a9f942ebe73c01e9d5afedd0112bfb30d25966c51c87e84ad4bbb0"
     },
     {
       "path": "stem-data.json",
