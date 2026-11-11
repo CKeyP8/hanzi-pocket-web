@@ -1,6 +1,6 @@
 # Hanzi Pocket
 
-Hanzi Pocket 3.0: the approved light Editorial Focus app with full HSK 1–5, official CSCA STEM/foundation vocabulary, unlimited Flashcards and Dictation, mixed personal collections, generated listening quizzes, an offline dictionary and cumulative stroke discovery. The selected Fire Horse portrait is the app and Home Screen icon.
+Hanzi Pocket 3.1: the light Editorial Focus app with science subject categories with full HSK 1–5, official CSCA STEM/foundation vocabulary, unlimited Flashcards and Dictation, mixed personal collections, generated listening quizzes, an offline dictionary and cumulative stroke discovery. The selected Fire Horse portrait is the app and Home Screen icon.
 
 ## GitHub Pages
 
@@ -14,7 +14,7 @@ The expected project address for `CKeyP8/hanzi-pocket-web` is `https://ckeyp8.gi
 
 Open the published app online and wait for **Ready for offline use** before trying airplane mode. The app, HSK catalog, dictionary and stroke data are cached locally. Offline pronunciation uses a Mandarin voice installed on the device.
 
-When an update is published, the app can download changed assets while connected and show **Open latest version**. Workbox reuses unchanged precached assets; an edited JavaScript bundle is downloaded as a whole new file. An already-open app may continue using its earlier version until the update is activated. Users do not download the repository or its Git history.
+When an update is published, the app can download changed assets while connected and show **Install available update**. Workbox reuses unchanged precached assets; an edited JavaScript bundle is downloaded as a whole new file. An already-open app may continue using its earlier version until the update is activated. Users do not download the repository or its Git history.
 
 Words, collections, settings and learning progress stay in the current browser or installed web app. They are not committed to this repository or synchronized between Chrome, Safari and other devices. A different hostname starts a separate data space. Builds under a repository path also use a database name specific to that path. Keep the same public URL for future updates to preserve the same local data space.
 
@@ -49,3 +49,13 @@ Settings offers full JSON backups, restoration of both original version-1 and cu
 Next stroke draws one additional permanent stroke. Reset clears; Replay leaves a complete character. The 1,527-character bundled stroke pack covers every HSK 1–5 character; unsupported additional technical/personal characters show an availability message. Downloaded Mandarin device voices provide pronunciation. Workbox precaches the complete release, including curriculum, scripts, dictionary, stroke data and icons; wait for Ready for offline use in Settings.
 
 The chosen icon is included unchanged as a 1254 × 1254 PNG, accurately declared in the manifest; browsers scale it for the device. No image generation or cloud call occurs in the app. The source of the previous interface is retained for recovery, and the same GitHub Pages URL is used.
+
+### Version 3.1 — science subjects
+
+The STEM panel now opens Mathematics, Physics, Chemistry, Computing, and Shared
+scientific vocabulary. Each field offers all levels or the original official
+difficulty levels, with the existing gallery, Flashcards, Dictation, and saves.
+Subject memberships are independent Hanzi Pocket study labels; they overlap
+without duplicating word IDs or learning history. All official entries and the
+separate foundation library are retained. Existing device data needs no import
+or reset. Install the available update in Settings and wait for offline readiness.
