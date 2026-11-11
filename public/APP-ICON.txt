@@ -1,0 +1,20 @@
+Hanzi Pocket — Fire Horse launcher icons
+
+Approved portrait master SHA-256: 83a5ba484ae3239a63a42b0a4fdb0c7dbc57157c44382692a52535cfdc3dba89
+
+The same selected artwork is packaged as opaque 8-bit RGB PNGs in sRGB,
+with no crop, recolouring or creative changes. PNG export omits ancillary
+source metadata. The original master remains unchanged in project artwork.
+
+Apple touch icon: 180 x 180 pixels, explicit HTML sizes, versioned filename.
+Web manifest: 192 x 192 and 512 x 512 pixels, PNG, any/maskable declarations.
+Legacy PNG paths resolve to the same artwork at their declared dimensions.
+
+An existing iOS Home Screen icon may retain its installation artwork.
+A fresh Add to Home Screen preview must display the horse before adding.
+Do not delete an existing app or clear its storage to troubleshoot the icon;
+keep a full backup before creating a replacement installation.
+
+icons/fire-horse-v2-180.png — 45149 bytes — SHA-256 ef053165d96b9048e3999893aa5a72556f4be44035db82f8c403794fe8af2271
+icons/fire-horse-v2-192.png — 49920 bytes — SHA-256 bbb13af70b492b68c57a63aa90c0bce440fcc747ac06d5399bb7f21611e59ae1
+icons/fire-horse-v2-512.png — 336757 bytes — SHA-256 b9fb005e8c3f304d948db75fdd04fda880dc2b1212e5d3f90ebbd770dbe106d2
