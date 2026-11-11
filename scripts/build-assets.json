@@ -112,13 +112,13 @@
     },
     {
       "path": "app-icon.png",
-      "bytes": 1775812,
-      "sha256": "83a5ba484ae3239a63a42b0a4fdb0c7dbc57157c44382692a52535cfdc3dba89"
+      "bytes": 336757,
+      "sha256": "b9fb005e8c3f304d948db75fdd04fda880dc2b1212e5d3f90ebbd770dbe106d2"
     },
     {
       "path": "apple-touch-icon.png",
-      "bytes": 1775812,
-      "sha256": "83a5ba484ae3239a63a42b0a4fdb0c7dbc57157c44382692a52535cfdc3dba89"
+      "bytes": 45149,
+      "sha256": "ef053165d96b9048e3999893aa5a72556f4be44035db82f8c403794fe8af2271"
     },
     {
       "path": "csca-catalog.json",
@@ -159,6 +159,41 @@
       "path": "stem-data.json",
       "bytes": 4835,
       "sha256": "9a56b6c0b18fb9df5561c283c58d442279d20297e08a00ab34054f9e54adc243"
+    },
+    {
+      "path": "icons/fire-horse-v2-180.png",
+      "bytes": 45149,
+      "sha256": "ef053165d96b9048e3999893aa5a72556f4be44035db82f8c403794fe8af2271"
+    },
+    {
+      "path": "icons/fire-horse-v2-192.png",
+      "bytes": 49920,
+      "sha256": "bbb13af70b492b68c57a63aa90c0bce440fcc747ac06d5399bb7f21611e59ae1"
+    },
+    {
+      "path": "icons/fire-horse-v2-512.png",
+      "bytes": 336757,
+      "sha256": "b9fb005e8c3f304d948db75fdd04fda880dc2b1212e5d3f90ebbd770dbe106d2"
+    },
+    {
+      "path": "APP-ICON.txt",
+      "bytes": 1245,
+      "sha256": "298580ea65e3aafdd52ed469950a8a8e82154ab7707e9503b4e8659fe9ce8db9"
+    },
+    {
+      "path": "icon-192.png",
+      "bytes": 49920,
+      "sha256": "bbb13af70b492b68c57a63aa90c0bce440fcc747ac06d5399bb7f21611e59ae1"
+    },
+    {
+      "path": "icon-512.png",
+      "bytes": 336757,
+      "sha256": "b9fb005e8c3f304d948db75fdd04fda880dc2b1212e5d3f90ebbd770dbe106d2"
+    },
+    {
+      "path": "icon-maskable-512.png",
+      "bytes": 336757,
+      "sha256": "b9fb005e8c3f304d948db75fdd04fda880dc2b1212e5d3f90ebbd770dbe106d2"
     }
   ]
 }
