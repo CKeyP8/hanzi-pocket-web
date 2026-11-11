@@ -1,6 +1,6 @@
 # Hanzi Pocket
 
-Hanzi Pocket 3.1: the light Editorial Focus app with science subject categories with full HSK 1–5, official CSCA STEM/foundation vocabulary, unlimited Flashcards and Dictation, mixed personal collections, generated listening quizzes, an offline dictionary and cumulative stroke discovery. The selected Fire Horse portrait is the app and Home Screen icon.
+Hanzi Pocket 3.1.1: the light Editorial Focus app with science subject categories with full HSK 1–5, official CSCA STEM/foundation vocabulary, unlimited Flashcards and Dictation, mixed personal collections, generated listening quizzes, an offline dictionary and cumulative stroke discovery. The selected Fire Horse portrait is the app and Home Screen icon.
 
 ## GitHub Pages
 
@@ -48,7 +48,7 @@ Settings offers full JSON backups, restoration of both original version-1 and cu
 
 Next stroke draws one additional permanent stroke. Reset clears; Replay leaves a complete character. The 1,527-character bundled stroke pack covers every HSK 1–5 character; unsupported additional technical/personal characters show an availability message. Downloaded Mandarin device voices provide pronunciation. Workbox precaches the complete release, including curriculum, scripts, dictionary, stroke data and icons; wait for Ready for offline use in Settings.
 
-The chosen icon is included unchanged as a 1254 × 1254 PNG, accurately declared in the manifest; browsers scale it for the device. No image generation or cloud call occurs in the app. The source of the previous interface is retained for recovery, and the same GitHub Pages URL is used.
+The selected portrait master is preserved; launcher assets are packaged as opaque 180, 192 and 512 pixel PNGs with versioned filenames. HTML declares an explicit 180-pixel Apple touch icon, and the manifest declares standard 192/512 PNGs. Legacy icon paths serve the same artwork at their named sizes. No image generation or cloud call occurs in the app. The source of the previous interface is retained for recovery, and the same GitHub Pages URL is used.
 
 ### Version 3.1 — science subjects
 
@@ -59,3 +59,16 @@ Subject memberships are independent Hanzi Pocket study labels; they overlap
 without duplicating word IDs or learning history. All official entries and the
 separate foundation library are retained. Existing device data needs no import
 or reset. Install the available update in Settings and wait for offline readiness.
+
+### Version 3.1.1 — iPhone icon compatibility
+
+The selected horse artwork now has compact, explicitly sized launcher PNGs.
+The Apple touch icon is 180 × 180 (about 45 KB); the previous installation
+metadata pointed at a 1.8 MB master. Fresh filenames avoid reusing an old icon
+response. The original image is not redrawn, cropped or recoloured. Legacy PNG
+paths have matching-size copies, and all launch icons are cached for offline use.
+The app identity, URL, library and device data are unchanged. iOS can retain an
+existing installed icon; check for the horse in Safari's Add to Home Screen
+preview before adding a replacement. Keep the original app and a full backup
+until any replacement shows the expected progress. Physical iPhone validation
+is still required; desktop asset checks cannot prove the iOS installation UI.

@@ -18,7 +18,11 @@ export default defineConfig({
       description: 'A personal offline Chinese vocabulary companion.',
       theme_color: '#F5F0E7', background_color: '#F5F0E7',
       id: base, display: 'standalone', start_url: base, scope: base, lang: 'en',
-      icons: [{src:`${base}app-icon.png`,sizes:'1254x1254',type:'image/png',purpose:'any maskable'}]
+      icons: [
+        {src:`${base}icons/fire-horse-v2-192.png`,sizes:'192x192',type:'image/png',purpose:'any'},
+        {src:`${base}icons/fire-horse-v2-512.png`,sizes:'512x512',type:'image/png',purpose:'any'},
+        {src:`${base}icons/fire-horse-v2-512.png`,sizes:'512x512',type:'image/png',purpose:'maskable'}
+      ]
     },
     workbox: {
       clientsClaim: true,
