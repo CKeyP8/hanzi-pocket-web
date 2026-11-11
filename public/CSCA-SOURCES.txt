@@ -51,3 +51,20 @@ Existing saved terms, custom collections and learning records are preserved.
 26 former sample IDs map into official STEM cards. Six saved terms outside
 that list remain accessible in the user's Pocket, with an earlier-preview
 label; they are excluded from official decks. Daily-app data is separate.
+
+Subject navigation — Hanzi Pocket 3.1 (11 November 2026)
+The official STEM tables group vocabulary by difficulty, without per-word
+subject labels. Hanzi Pocket adds explicit editorial study memberships:
+Mathematics, Physics, Chemistry, Computing and Shared scientific vocabulary.
+These are independent study categories, not official CSCA classifications.
+Technical terms can belong to several fields (for example, vectors in maths
+and physics, atoms in physics and chemistry). General academic vocabulary
+and other general scientific contexts have a separate shared category.
+Subject totals overlap and must not be added to obtain the vocabulary total.
+All 948 STEM cards / 950 source rows remain included. Foundation Chinese
+retains its own complete library and official difficulty levels.
+All fields offer the original Beginner / Intermediate / Advanced filters.
+The same word ID is used in every field, difficulty, Pocket and collection;
+saved membership and learning history are shared within each practice mode.
+No word identities, pronunciations, meanings or official row references were
+changed for this update. Existing review queues and personal records remain.
