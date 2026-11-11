@@ -27,7 +27,8 @@ function create(){const db=new ExperienceDB('test-experience-'+crypto.randomUUID
 describe('Approved experience migration',()=>{
  it('retains vocabulary, edits, groups, latest results, counters and remaining queues',async()=>{
   const {snapshot,personal,group}=await fixture(),s=migrateLegacy(snapshot,catalog) as any;
-  expect(s.saved).toEqual([catalog[0].id,'legacy-'+personal]);expect(s.customWords[0].m).toBe('my edited course definition');
+  // Backup rows are read in random UUID key order; review queues retain exact order.
+  expect(s.saved).toHaveLength(2);expect(new Set(s.saved)).toEqual(new Set([catalog[0].id,'legacy-'+personal]));expect(s.customWords[0].m).toBe('my edited course definition');
   expect(s.memberships[catalog[0].id]).toEqual([group]);expect(s.memberships['legacy-'+personal]).toEqual([group]);
   expect(s.progress['hsk:normal:'+catalog[0].id]).toMatchObject({attempts:7,correct:false,lastSeenAt:200});
   expect(s.progress['hsk:normal:'+catalog[0].id].legacyPocketProgress).toEqual(snapshot.backup.progress.find(p=>p.lastReviewedAt!==null));
