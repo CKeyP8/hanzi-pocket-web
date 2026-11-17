@@ -1,6 +1,6 @@
 # Hanzi Pocket
 
-Hanzi Pocket 3.1.1: the light Editorial Focus app with science subject categories with full HSK 1–5, official CSCA STEM/foundation vocabulary, unlimited Flashcards and Dictation, mixed personal collections, generated listening quizzes, an offline dictionary and cumulative stroke discovery. The selected Fire Horse portrait is the app and Home Screen icon.
+Hanzi Pocket 3.1.2: the light Editorial Focus app with science subject categories with full HSK 1–5, official CSCA STEM/foundation vocabulary, unlimited Flashcards and Dictation, mixed personal collections, generated listening quizzes, an offline dictionary and cumulative stroke discovery. The selected Fire Horse portrait is the app and Home Screen icon.
 
 ## GitHub Pages
 
@@ -72,3 +72,18 @@ existing installed icon; check for the horse in Safari's Add to Home Screen
 preview before adding a replacement. Keep the original app and a full backup
 until any replacement shows the expected progress. Physical iPhone validation
 is still required; desktop asset checks cannot prove the iOS installation UI.
+
+### Version 3.1.2 — steady horizontal flashcards
+
+Practice stays within the viewport without page panning or rubber-band bounce.
+Only horizontal movement drags the answer; initial vertical drift no longer
+discards a valid swipe. Left remains correct, right remains incorrect. Finger
+tracking has no transition lag or rotation, and a fresh tap works immediately
+after a swipe. Vertical motions, cancelled gestures and a second pinch finger
+do not grade a word or reveal the next answer. Pinch zoom remains available.
+Leaving practice restores ordinary library scrolling. Dialogs remain scrollable.
+
+The answer area fits the viewport. Tap a revealed card for its complete word
+details, including long definitions; the full meanings are retained in data.
+Strokes and collection actions remain available alongside the answer. Vocabulary,
+saved words, groups, review queues, icons and database identity are unchanged.
