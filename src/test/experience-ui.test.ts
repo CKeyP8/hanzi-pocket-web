@@ -41,10 +41,10 @@ async function gestureStudy(revealed=true){
  const context=await boot({panel:'hsk',deck:'hsk-1',study:true,revealed,queues:{'hsk-1:normal':['hsk2026-1','hsk2026-2','hsk2026-3']}});
  const {doc,w}=context,app=doc.querySelector('[data-demo-app]')as HTMLElement,captures:number[]=[],releases:number[]=[];
  (app as any).setPointerCapture=(id:number)=>captures.push(id);(app as any).releasePointerCapture=(id:number)=>releases.push(id);
- const pointer=(type:string,x:number,y:number,id=1,primary=true)=>{
+ const pointer=(type:string,x:number,y:number,id=1,primary=true,target?:Element)=>{
   const event=new w.MouseEvent(type,{bubbles:true,cancelable:true,button:0,clientX:x,clientY:y});
   Object.defineProperties(event,{pointerId:{value:id},isPrimary:{value:primary},pointerType:{value:'touch'}});
-  (doc.querySelector('.hp-reveal')??app).dispatchEvent(event);
+  (target??doc.querySelector('.hp-reveal')??app).dispatchEvent(event);
  };
  return {...context,app,pointer,captures,releases};
 }
@@ -56,6 +56,34 @@ describe('Horizontal practice gestures',()=>{
   pointer('pointerup',190+dx,292);pointer('pointerup',190+dx,292);
   expect(saved.at(-1).state.progress['hsk:normal:hsk2026-1']).toEqual({attempts:1,correct});
   expect(doc.querySelector('.hp-hanzi')?.textContent).toBe('八');expect(captures).toEqual([1]);dom.window.close();
+ });
+ it.each([
+  {dx:-110,correct:true,origin:'.hp-reveal'},
+  {dx:110,correct:false,origin:'.hp-reveal'},
+  {dx:-110,correct:true,origin:'.hp-hanzi'},
+  {dx:110,correct:false,origin:'.hp-hanzi'},
+  {dx:-110,correct:true,origin:'.hp-study-body'},
+  {dx:110,correct:false,origin:'.hp-study-body'}
+ ])('keeps a touch swipe when implicit capture transfers from $origin ($correct)',async({dx,correct,origin})=>{
+  const {dom,doc,app,pointer,saved,captures,releases}=await gestureStudy(),start=doc.querySelector(origin)!;
+  // Touch implicitly captures the element pressed. On explicit capture by the
+  // app, the old element loses capture first; that event bubbles to the app.
+  pointer('pointerdown',190,250,1,true,start);pointer('gotpointercapture',190,250,1,true,start);
+  pointer('pointermove',190+Math.sign(dx)*20,270,1,true,start);
+  pointer('lostpointercapture',190+Math.sign(dx)*20,270,1,true,start);
+  pointer('gotpointercapture',190+Math.sign(dx)*20,270,1,true,app);
+  expect(releases).toEqual([]);
+  pointer('pointermove',190+dx,280,1,true,app);
+  expect((doc.querySelector('.hp-reveal')as HTMLElement).style.transform).toBe(`translateX(${dx}px)`);
+  pointer('pointerup',190+dx,280,1,true,app);
+  expect(saved.at(-1)?.state.progress['hsk:normal:hsk2026-1']).toEqual({attempts:1,correct});
+  expect(doc.querySelector('.hp-hanzi')?.textContent).toBe('八');expect(captures).toEqual([1]);expect(releases).toEqual([1]);dom.window.close();
+ });
+ it.each([-100,100])('keeps a quick touch flick when capture transfers just before finger-up (%s)',async dx=>{
+  const {dom,doc,app,pointer,saved}=await gestureStudy(),start=doc.querySelector('.hp-reveal')!;
+  pointer('pointerdown',190,250,1,true,start);pointer('pointermove',190+dx,255,1,true,start);
+  pointer('lostpointercapture',190+dx,255,1,true,start);pointer('gotpointercapture',190+dx,255,1,true,app);pointer('pointerup',190+dx,255,1,true,app);
+  expect(saved.at(-1)?.state.progress['hsk:normal:hsk2026-1']).toEqual({attempts:1,correct:dx<0});dom.window.close();
  });
  it.each([false,true])('ignores vertical movement and its synthetic click (revealed=%s)',async revealed=>{
   const {dom,doc,pointer,saved}=await gestureStudy(revealed);
@@ -71,7 +99,7 @@ describe('Horizontal practice gestures',()=>{
   expect(saved).toHaveLength(0);expect(releases).toEqual([1]);expect(doc.querySelector('dialog')).toBeNull();dom.window.close();
  });
  it.each(['pointercancel','lostpointercapture'])('cleans up a %s without grading',async event=>{
-  const {dom,doc,pointer,saved}=await gestureStudy();pointer('pointerdown',190,250);pointer('pointermove',150,260);pointer(event,150,260);pointer('pointerup',80,260);
+  const {dom,doc,pointer,saved}=await gestureStudy();pointer('pointerdown',190,250);pointer('pointermove',150,260);pointer(event,150,260,1,true,doc.querySelector('[data-demo-app]')!);pointer('pointerup',80,260);
   expect((doc.querySelector('.hp-reveal')as HTMLElement).style.transform).toBe('');expect(doc.querySelector('.hp-dragging')).toBeNull();expect(saved).toHaveLength(0);dom.window.close();
  });
  it('cancels a drag when a second finger starts a pinch',async()=>{
