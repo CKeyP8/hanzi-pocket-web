@@ -230,7 +230,10 @@
   cancelDrag();
   if(previous.horizontal&&Math.abs(dx)>75&&state.study&&state.revealed&&previous.word===ensureQueue()[0])answer(dx<0);
  });
- for(const type of ['pointercancel','lostpointercapture'])app.addEventListener(type,e=>{if(drag?.id===e.pointerId)cancelDrag();});
+ app.addEventListener('pointercancel',e=>{if(drag?.id===e.pointerId)cancelDrag();});
+ // Touch first captures the pressed child, then transfers to app for swiping.
+ // Its bubbling loss belongs to that child, not to our ongoing app capture.
+ app.addEventListener('lostpointercapture',e=>{if(e.target===app&&drag?.id===e.pointerId)cancelDrag();});
  window.addEventListener('blur',cancelDrag);
  app.addEventListener('change',async event=>{const field=event.target;if(!field.matches('[data-restore-backup],[data-import-csv]')||!field.files?.[0])return;try{const text=await field.files[0].text();if(field.matches('[data-restore-backup]')){if(!confirm('Restore this Pocket backup? A recovery copy of your current Pocket will be kept.'))return;await config.restore(text);}else await config.importCSV(text,structuredClone(state));}catch(error){message=error.message;render();}});
  window.addEventListener('pocket-status',()=>{if(modal==='settings')render();});
