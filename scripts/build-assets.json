@@ -132,8 +132,8 @@
     },
     {
       "path": "pocket-app.js",
-      "bytes": 49546,
-      "sha256": "c87ac6fc9758b207712c87f1968f3df7c403e0846eaaeb3bd8f6eb4f34ba7ecd"
+      "bytes": 49762,
+      "sha256": "a11d14cc954b5cc8bfb0b98521240f494b3e186bfbc26653379b813dd7eb9c76"
     },
     {
       "path": "pocket-lucide.js",
