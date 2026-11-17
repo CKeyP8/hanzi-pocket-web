@@ -76,8 +76,8 @@
  function review(){return `<span class="hp-eyebrow">Daily practice</span><h1 style="margin-top:10px">Your daily<br>Chinese ritual.</h1><p class="hp-lead">Your own words, with room to keep exploring.</p>${modePicker()}<div class="hp-feature"><span class="hp-eyebrow">Listen in context</span><h2>A fresh sentence.</h2><p class="hp-small">Hear changing sentences and choose what they mean.</p>${btn(icon('headphones')+'Listening quiz','quiz-open')}</div><div class="hp-feature"><span class="hp-eyebrow">My Pocket</span><h2>${state.saved.length} saved words</h2><p class="hp-small">Review your Pocket, then continue in your last HSK level.</p>${btn(icon('play')+'Start practice','review-pocket','hp-primary',state.saved.length?'':'disabled')}</div><div class="hp-row hp-section-heading"><h2>Your collections</h2>${btn('See all','nav-groups','hp-text')}</div>${state.groups.slice(0,3).map(g=>btn(esc(g.name),'group-'+g.id,'hp-secondary','style="margin-bottom:9px"')).join('')||btn('Create your first collection','new-group','hp-secondary')}<div class="hp-row hp-section-heading"><h2>Keep discovering</h2></div>${btn('HSK 1–5','nav-hsk','hp-secondary')}${btn('STEM & CSCA','nav-stem','hp-secondary','style="margin-top:10px"')}`;}
  function study(){
   const d=deck(),w=byId.get(ensureQueue()[0]);if(!w){state.study=false;return pocket();}const dict=state.mode==='dictation',s=stats(d),saved=state.saved.includes(w.id);
-  const face=state.revealed?`<span class="hp-hanzi" lang="zh-Hans">${esc(w.h)}</span><span class="hp-pinyin">${esc(w.p)}</span><span class="hp-meaning">${esc(w.m)}</span>`:dict?`<span class="hp-pinyin">${esc(w.p)}</span><span class="hp-hidden-answer" aria-hidden="true">···</span><span class="hp-tap-label">Tap anywhere to reveal</span>`:`<span class="hp-hanzi" lang="zh-Hans">${esc(w.h)}</span><span class="hp-tap-label">Tap anywhere to reveal</span>`;
-  return `<section class="hp-study" aria-label="${dict?'Dictation':'Flashcards'} practice"><header class="hp-study-header">${btn(icon('arrow-left'),'leave','hp-icon','aria-label="Leave practice"')}<div class="hp-study-title">${esc(d.name)}<small>${dict?'Dictation':'Flashcards'} · ${s.fresh} new · ${s.missed} to revisit</small></div>${btn(icon(saved?'bookmark-check':'bookmark')+(saved?'Saved':'Save'),'save-current','hp-save',saved?'disabled':'')}</header><div class="hp-study-body"><span class="hp-prompt-type">${state.revealed?'The answer':dict?'Listen & recall the characters':'Recognise the characters'}</span><button class="hp-reveal ${state.revealed?'hp-answer':''}" data-action="reveal" aria-label="${state.revealed?esc(w.h+', '+w.p+', '+w.m):dict?esc(w.p+'. Reveal the characters'):'Reveal pinyin and meaning'}">${face}</button>${dict||state.revealed?`<div class="hp-audio">${btn(icon('volume-2')+'Listen','listen','hp-text')}${btn('Slow','slow','hp-text')}${dict&&!state.revealed?btn(state.hint?'Hide hint':'Meaning hint','hint','hp-text'):''}</div>`:''}${state.hint&&!state.revealed?`<p class="hp-small">${esc(w.m)}</p>`:''}${audioStatus?`<p class="hp-audio-status" role="status">${esc(audioStatus)}</p>`:''}${state.revealed&&w.zh?`<div class="hp-example"><span lang="zh-Hans">${esc(w.zh)}</span><p>${esc(w.en)}</p></div>`:''}${state.revealed?btn(icon('pen-line')+'Strokes','strokes-current','hp-text')+btn('Add to a collection','organize-current','hp-text'):''}</div><footer class="hp-study-footer"><p class="hp-study-hint">${state.revealed?'Swipe left if correct · right to revisit':'Recall first. Reveal when you’re ready.'}</p><div class="hp-answer-actions">${btn(icon('arrow-left')+'Correct','correct','hp-correct',state.revealed?'':'disabled')}${btn(icon('undo-2')+'Undo','undo','hp-undo',state.history.length?'':'disabled')}${btn('Incorrect'+icon('arrow-right'),'incorrect','hp-incorrect',state.revealed?'':'disabled')}</div></footer></section>`;
+  const face=state.revealed?`<span class="hp-hanzi" lang="zh-Hans">${esc(w.h)}</span><span class="hp-pinyin">${esc(w.p)}</span><span class="hp-meaning">${esc(w.m)}</span><span class="hp-tap-label">Tap for full details</span>`:dict?`<span class="hp-pinyin">${esc(w.p)}</span><span class="hp-hidden-answer" aria-hidden="true">···</span><span class="hp-tap-label">Tap anywhere to reveal</span>`:`<span class="hp-hanzi" lang="zh-Hans">${esc(w.h)}</span><span class="hp-tap-label">Tap anywhere to reveal</span>`;
+  return `<section class="hp-study" aria-label="${dict?'Dictation':'Flashcards'} practice"><header class="hp-study-header">${btn(icon('arrow-left'),'leave','hp-icon','aria-label="Leave practice"')}<div class="hp-study-title">${esc(d.name)}<small>${dict?'Dictation':'Flashcards'} · ${s.fresh} new · ${s.missed} to revisit</small></div>${btn(icon(saved?'bookmark-check':'bookmark')+(saved?'Saved':'Save'),'save-current','hp-save',saved?'disabled':'')}</header><div class="hp-study-body"><span class="hp-prompt-type">${state.revealed?'The answer':dict?'Listen & recall the characters':'Recognise the characters'}</span><button class="hp-reveal ${state.revealed?'hp-answer':''}" data-action="reveal" aria-label="${state.revealed?esc(w.h+', '+w.p+', '+w.m):dict?esc(w.p+'. Reveal the characters'):'Reveal pinyin and meaning'}">${face}</button>${dict||state.revealed?`<div class="hp-audio">${btn(icon('volume-2')+'Listen','listen','hp-text')}${btn('Slow','slow','hp-text')}${dict&&!state.revealed?btn(state.hint?'Hide hint':'Meaning hint','hint','hp-text'):''}</div>`:''}${state.hint&&!state.revealed?`<p class="hp-small">${esc(w.m)}</p>`:''}${audioStatus?`<p class="hp-audio-status" role="status">${esc(audioStatus)}</p>`:''}${state.revealed&&w.zh?`<div class="hp-example"><span lang="zh-Hans">${esc(w.zh)}</span><p>${esc(w.en)}</p></div>`:''}${state.revealed?'<div class="hp-study-tools">'+btn(icon('pen-line')+'Strokes','strokes-current','hp-text')+btn('Add to a collection','organize-current','hp-text')+'</div>':''}</div><footer class="hp-study-footer"><p class="hp-study-hint">${state.revealed?'Swipe left if correct · right to revisit':'Recall first. Reveal when you’re ready.'}</p><div class="hp-answer-actions">${btn(icon('arrow-left')+'Correct','correct','hp-correct',state.revealed?'':'disabled')}${btn(icon('undo-2')+'Undo','undo','hp-undo',state.history.length?'':'disabled')}${btn('Incorrect'+icon('arrow-right'),'incorrect','hp-incorrect',state.revealed?'':'disabled')}</div></footer></section>`;
  }
  function wordSource(w){if(w.officialRefs){const refs=w.officialRefs.map(r=>`${stages.find(v=>v[0]===r.stage)[1]} #${r.printedRow}`).join(' · '),url=csca.sources.find(s=>s.key===w.track).url,fields=w.subjects?.map(id=>csca.subjects.find(s=>s.id===id).name).join(' · ');return `<p class="hp-small">Official CSCA ${w.track==='stem'?'STEM':'foundation'} list · ${esc(refs)}${fields?'<br>Study fields: '+esc(fields):''}<br>English: ${esc(w.meaningSource)} · <a href="${esc(url)}" target="_blank" rel="noreferrer">Source PDF</a></p>`;}return w.legacy?'<p class="hp-small">Kept from your earlier preview saves. Outside the official CSCA vocabulary decks.</p>':'';}
  function checkboxes(ids=[]){return state.groups.length?state.groups.map(g=>`<label class="hp-check"><input type="checkbox" name="groups" value="${esc(g.id)}" ${ids.includes(g.id)?'checked':''}><span>${esc(g.name)}</span></label>`).join(''):'<p class="hp-small">Create a collection to organise your words.</p>';}
@@ -95,7 +95,9 @@
   return `<dialog class="hp-modal" aria-label="${esc(title)}"><div class="hp-row hp-modal-heading"><h2>${esc(title)}</h2>${btn(icon('x'),'close-modal','hp-icon','aria-label="Close dialog"')}</div>${content}</dialog>`;
  }
  function render(){
+  cancelDrag();
   if(state.study)app.innerHTML=study();else app.innerHTML=`<header class="hp-masthead"><span class="hp-brand">HANZI POCKET</span>${btn(icon('settings-2'),'settings','hp-icon','aria-label="Settings"')}</header><main class="hp-main">${state.deck&&['hsk','stem'].includes(state.panel)?selectedDeck():state.panel==='stem'?stemHome():state.panel==='hsk'?hskHome():state.panel==='pocket'?pocket():state.panel==='groups'?groups():state.panel==='quiz'?listeningQuiz():review()}</main>${nav()}<footer class="hp-credits">HSK 1–5 · STEM &amp; CSCA<br><a href="./DATA-ATTRIBUTION.txt">Data credits</a> · <a href="./HSK-LICENSE.txt">HSK license</a> · <a href="./CSCA-SOURCES.txt">CSCA sources</a></footer>`;
+  document.documentElement.classList.toggle('hp-study-active',state.study);
   if(message)app.insertAdjacentHTML('beforeend',`<div class="hp-toaster" role="status">${esc(message)}</div>`);if(modal)app.insertAdjacentHTML('beforeend',dialog());
   app.querySelector('dialog')?.showModal();window.lucide?.createIcons({attrs:{width:18,height:18}});
  }
@@ -130,7 +132,7 @@
  app.addEventListener('click',async event=>{
   const button=event.target.closest('button[data-action]'),a=button?.dataset.action;
   if(!a){if(state.study&&!modal&&!event.target.closest('button,input,textarea,select,a,dialog')&&Date.now()>=blockedUntil){state.revealed=true;finish();}return;}
-  if(button.disabled)return;if(a==='reveal'){if(Date.now()<blockedUntil)return;state.revealed=true;finish();return;}message='';
+  if(button.disabled)return;if(a==='reveal'){if(Date.now()<blockedUntil)return;if(state.revealed){detailId=ensureQueue()[0];pendingIds=[detailId];modal='detail';render();}else{state.revealed=true;finish();}return;}message='';
   if(a==='settings'){modal='settings';render();return;}
   if(a==='install-update'){void config.update?.().catch(error=>{message=error.message;render();});return;}
   if(a==='export-csv'){void config.csv?.(state);return;}
@@ -203,10 +205,33 @@
    finish();
   }catch(e){form.querySelector('[data-form-error]').textContent=e.message;}
  });
- app.addEventListener('pointerdown',e=>{if(!state.study||!state.revealed||modal||e.button!==0||e.target.closest('button:not(.hp-reveal),a,input,select,textarea,dialog'))return;drag={x:e.clientX,y:e.clientY,id:e.pointerId,horizontal:false};});
- app.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(!drag.horizontal&&Math.abs(dy)>12&&Math.abs(dy)>Math.abs(dx)){drag=null;return;}if(Math.abs(dx)>12&&Math.abs(dx)>Math.abs(dy)*1.2){drag.horizontal=true;app.setPointerCapture?.(e.pointerId);blockedUntil=Date.now()+500;}if(drag.horizontal){const face=app.querySelector('.hp-reveal');if(face)face.style.transform=`translateX(${dx}px) rotate(${dx/35}deg)`;}});
- app.addEventListener('pointerup',e=>{if(!drag||drag.id!==e.pointerId)return;const dx=e.clientX-drag.x,h=drag.horizontal;drag=null;if(h)blockedUntil=Date.now()+450;if(h&&Math.abs(dx)>75)answer(dx<0);else{const face=app.querySelector('.hp-reveal');if(face)face.style.transform='';}});
- app.addEventListener('pointercancel',()=>{drag=null;const face=app.querySelector('.hp-reveal');if(face)face.style.transform='';});
+ function cancelDrag(){
+  const previous=drag;drag=null;const face=app.querySelector('.hp-reveal');if(face){face.classList.remove('hp-dragging');face.style.transform='';}
+  if(previous?.moved)blockedUntil=Date.now()+450;
+  if(previous?.captured)try{app.releasePointerCapture?.(previous.id);}catch{/* The browser may already have released it. */}
+ }
+ app.addEventListener('pointerdown',e=>{
+  if(e.isPrimary===false){cancelDrag();return;}
+  if(!state.study||modal||e.button!==0||e.target.closest('button:not(.hp-reveal),a,input,select,textarea,dialog'))return;
+  cancelDrag();blockedUntil=0;drag={x:e.clientX,y:e.clientY,id:e.pointerId,word:ensureQueue()[0],revealed:state.revealed,horizontal:false,moved:false,captured:false};
+ });
+ app.addEventListener('pointermove',e=>{
+  if(!drag||e.pointerId!==drag.id)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+  if(Math.max(Math.abs(dx),Math.abs(dy))>10){drag.moved=true;blockedUntil=Date.now()+450;}
+  if(!drag.revealed||!state.revealed)return;
+  // The browser cannot pan this surface. Only X controls a review gesture;
+  // early vertical drift must not discard a later left/right swipe.
+  if(!drag.horizontal&&Math.abs(dx)>12){drag.horizontal=true;try{app.setPointerCapture?.(e.pointerId);drag.captured=true;}catch{}}
+  if(drag.horizontal){const face=app.querySelector('.hp-reveal');if(face){face.classList.add('hp-dragging');face.style.transform=`translateX(${dx}px)`;}}
+ });
+ app.addEventListener('pointerup',e=>{
+  if(!drag||drag.id!==e.pointerId)return;const previous=drag,dx=e.clientX-previous.x;
+  if(Math.max(Math.abs(dx),Math.abs(e.clientY-previous.y))>10)previous.moved=true;
+  cancelDrag();
+  if(previous.horizontal&&Math.abs(dx)>75&&state.study&&state.revealed&&previous.word===ensureQueue()[0])answer(dx<0);
+ });
+ for(const type of ['pointercancel','lostpointercapture'])app.addEventListener(type,e=>{if(drag?.id===e.pointerId)cancelDrag();});
+ window.addEventListener('blur',cancelDrag);
  app.addEventListener('change',async event=>{const field=event.target;if(!field.matches('[data-restore-backup],[data-import-csv]')||!field.files?.[0])return;try{const text=await field.files[0].text();if(field.matches('[data-restore-backup]')){if(!confirm('Restore this Pocket backup? A recovery copy of your current Pocket will be kept.'))return;await config.restore(text);}else await config.importCSV(text,structuredClone(state));}catch(error){message=error.message;render();}});
  window.addEventListener('pocket-status',()=>{if(modal==='settings')render();});
  window.addEventListener('pagehide',stopAudio);window.speechSynthesis?.getVoices();restore();render();
