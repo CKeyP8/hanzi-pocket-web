@@ -36,6 +36,65 @@ describe('Approved production interface',()=>{
 });
 
 const csca=JSON.parse(readFileSync('public/csca-catalog.json','utf8'));
+
+async function gestureStudy(revealed=true){
+ const context=await boot({panel:'hsk',deck:'hsk-1',study:true,revealed,queues:{'hsk-1:normal':['hsk2026-1','hsk2026-2','hsk2026-3']}});
+ const {doc,w}=context,app=doc.querySelector('[data-demo-app]')as HTMLElement,captures:number[]=[],releases:number[]=[];
+ (app as any).setPointerCapture=(id:number)=>captures.push(id);(app as any).releasePointerCapture=(id:number)=>releases.push(id);
+ const pointer=(type:string,x:number,y:number,id=1,primary=true)=>{
+  const event=new w.MouseEvent(type,{bubbles:true,cancelable:true,button:0,clientX:x,clientY:y});
+  Object.defineProperties(event,{pointerId:{value:id},isPrimary:{value:primary},pointerType:{value:'touch'}});
+  (doc.querySelector('.hp-reveal')??app).dispatchEvent(event);
+ };
+ return {...context,app,pointer,captures,releases};
+}
+describe('Horizontal practice gestures',()=>{
+ it.each([{dx:-110,correct:true},{dx:110,correct:false}])('ignores initial vertical drift before a horizontal swipe ($correct)',async({dx,correct})=>{
+  const {dom,doc,pointer,saved,captures}=await gestureStudy();
+  pointer('pointerdown',190,250);pointer('pointermove',192,284);pointer('pointermove',190+dx,292);
+  expect((doc.querySelector('.hp-reveal')as HTMLElement).style.transform).toBe(`translateX(${dx}px)`);
+  pointer('pointerup',190+dx,292);pointer('pointerup',190+dx,292);
+  expect(saved.at(-1).state.progress['hsk:normal:hsk2026-1']).toEqual({attempts:1,correct});
+  expect(doc.querySelector('.hp-hanzi')?.textContent).toBe('八');expect(captures).toEqual([1]);dom.window.close();
+ });
+ it.each([false,true])('ignores vertical movement and its synthetic click (revealed=%s)',async revealed=>{
+  const {dom,doc,pointer,saved}=await gestureStudy(revealed);
+  pointer('pointerdown',190,240);pointer('pointermove',193,410);pointer('pointerup',193,410);
+  (doc.querySelector('.hp-reveal')as HTMLButtonElement).click();
+  expect(doc.querySelector('dialog')).toBeNull();expect(saved).toHaveLength(0);
+  expect(doc.querySelector('.hp-answer')!==null).toBe(revealed);dom.window.close();
+ });
+ it('snaps a short horizontal drag back without grading or opening details',async()=>{
+  const {dom,doc,pointer,saved,releases}=await gestureStudy();pointer('pointerdown',190,250);pointer('pointermove',225,260);
+  pointer('pointerup',225,260);(doc.querySelector('.hp-reveal')as HTMLButtonElement).click();
+  expect((doc.querySelector('.hp-reveal')as HTMLElement).style.transform).toBe('');expect(doc.querySelector('.hp-dragging')).toBeNull();
+  expect(saved).toHaveLength(0);expect(releases).toEqual([1]);expect(doc.querySelector('dialog')).toBeNull();dom.window.close();
+ });
+ it.each(['pointercancel','lostpointercapture'])('cleans up a %s without grading',async event=>{
+  const {dom,doc,pointer,saved}=await gestureStudy();pointer('pointerdown',190,250);pointer('pointermove',150,260);pointer(event,150,260);pointer('pointerup',80,260);
+  expect((doc.querySelector('.hp-reveal')as HTMLElement).style.transform).toBe('');expect(doc.querySelector('.hp-dragging')).toBeNull();expect(saved).toHaveLength(0);dom.window.close();
+ });
+ it('cancels a drag when a second finger starts a pinch',async()=>{
+  const {dom,doc,pointer,saved}=await gestureStudy();pointer('pointerdown',190,250);pointer('pointermove',150,260);pointer('pointerdown',300,260,2,false);pointer('pointerup',70,260);
+  expect((doc.querySelector('.hp-reveal')as HTMLElement).style.transform).toBe('');expect(saved).toHaveLength(0);dom.window.close();
+ });
+ it('keeps an unrevealed swipe from grading or turning into a reveal tap',async()=>{
+  const {dom,doc,pointer,saved}=await gestureStudy(false);pointer('pointerdown',190,250);pointer('pointermove',70,260);pointer('pointerup',70,260);(doc.querySelector('.hp-reveal')as HTMLButtonElement).click();
+  expect(doc.querySelector('.hp-answer')).toBeNull();expect(saved).toHaveLength(0);dom.window.close();
+ });
+ it('retains tap-to-reveal, full details and answer buttons, then unlocks scrolling when leaving',async()=>{
+  const {dom,doc,pointer,click,saved}=await gestureStudy(false);expect(doc.documentElement.classList.contains('hp-study-active')).toBe(true);
+  pointer('pointerdown',190,250);pointer('pointerup',190,250);click('reveal');expect(doc.querySelector('.hp-answer')).not.toBeNull();
+  click('reveal');expect(doc.querySelector('dialog[open]')).not.toBeNull();expect(doc.querySelector('dialog')?.textContent).toContain('love');click('close-modal');click('correct');
+  expect(saved.at(-1).state.progress['hsk:normal:hsk2026-1'].correct).toBe(true);click('leave');expect(doc.documentElement.classList.contains('hp-study-active')).toBe(false);dom.window.close();
+ });
+ it('accepts a new deliberate tap immediately after a swipe while suppressing its trailing click',async()=>{
+  const {dom,doc,pointer}=await gestureStudy();pointer('pointerdown',190,250);pointer('pointermove',70,260);pointer('pointerup',70,260);
+  (doc.querySelector('.hp-reveal')as HTMLButtonElement).click();expect(doc.querySelector('.hp-answer')).toBeNull();
+  pointer('pointerdown',190,250);pointer('pointerup',190,250);(doc.querySelector('.hp-reveal')as HTMLButtonElement).click();expect(doc.querySelector('.hp-answer')).not.toBeNull();dom.window.close();
+ });
+});
+
 describe('CSCA subject navigation',()=>{
  it('opens all five complete subject galleries and keeps foundation Chinese separate',async()=>{
   const {dom,doc,click}=await boot();click('nav-stem');

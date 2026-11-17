@@ -20,6 +20,6 @@ describe('Home Screen icon assets',()=>{
   expect(apple).toContain('sizes="180x180"');expect(apple).toContain('type="image/png"');expect(apple).toContain('%BASE_URL%icons/fire-horse-v2-180.png');
  });
  it('keeps the chosen artwork on legacy paths used by older app metadata',()=>{
-  for(const [alias,size]of [['apple-touch-icon.png',180],['app-icon.png',512],['icon-192.png',192],['icon-512.png',512],['icon-maskable-512.png',512]]as const)expect(read(alias)).toEqual(read(`icons/fire-horse-v2-${size}.png`));
+  for(const [alias,size]of [['apple-touch-icon.png',180],['app-icon.png',512],['icon-192.png',192],['icon-512.png',512],['icon-maskable-512.png',512]]as const)expect(read(alias).equals(read(`icons/fire-horse-v2-${size}.png`))).toBe(true);
  });
 });
