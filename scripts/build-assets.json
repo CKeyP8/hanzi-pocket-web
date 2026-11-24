@@ -132,8 +132,8 @@
     },
     {
       "path": "pocket-app.js",
-      "bytes": 49762,
-      "sha256": "a11d14cc954b5cc8bfb0b98521240f494b3e186bfbc26653379b813dd7eb9c76"
+      "bytes": 53978,
+      "sha256": "3357dc528904159a7c52642b9c7c65984954cf242b34e2a27a099b89a7bfaf1b"
     },
     {
       "path": "pocket-lucide.js",
@@ -152,8 +152,8 @@
     },
     {
       "path": "pocket-style.css",
-      "bytes": 20542,
-      "sha256": "d82f2afd6f4ec21d7165eaf9fe5abac91965f2f317328cf629ee0b04d057a7a5"
+      "bytes": 21237,
+      "sha256": "4d3871a6b0e7a9a72e036e480e5c7b0caf20709888c453eba1844f32a3b06734"
     },
     {
       "path": "stem-data.json",
