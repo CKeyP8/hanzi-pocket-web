@@ -36,3 +36,11 @@ html.hp-study-active,html.hp-study-active body{height:100%;overflow:hidden;overs
 #hp-stem-demo .hp-study-body>.hp-prompt-type,#hp-stem-demo .hp-study-body>.hp-audio,#hp-stem-demo .hp-study-body>.hp-audio-status{flex-shrink:0}
 #hp-stem-demo .hp-study-footer{padding:10px 20px calc(12px + env(safe-area-inset-bottom))}
 #hp-stem-demo .hp-reveal.hp-dragging{transition:none;will-change:transform}
+
+#hp-stem-demo .hp-flashcard-modes{margin-top:-12px;background:transparent;border:1px solid var(--hp-line)}
+#hp-stem-demo .hp-flashcard-modes button{font-size:14px}
+#hp-stem-demo .hp-flashcard-modes button[aria-pressed=true]{background:var(--hp-wash);box-shadow:none}
+#hp-stem-demo .hp-tile-level{position:absolute;bottom:6px;font:12px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--hp-muted)}
+#hp-stem-demo .hp-word-tile.hp-hsk-result{padding-bottom:24px}
+#hp-stem-demo .hp-word-tile.hp-hsk-result>span:first-child{font-size:clamp(22px,7vw,28px);line-height:1.25}
+#hp-stem-demo .hp-word-tile.hp-hsk-result.hp-long-word>span:first-child{font-size:clamp(16px,5.2vw,20px)}
