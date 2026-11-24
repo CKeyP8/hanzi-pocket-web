@@ -3,13 +3,13 @@ import {createRequire} from 'node:module';
 import {describe,it,expect} from 'vitest';
 const {JSDOM}=createRequire(import.meta.url)('jsdom');
 
-async function boot(initial:Record<string,unknown>={}){
+async function boot(initial:Record<string,unknown>={},overrides:Record<string,unknown>={}){
  const dom=new JSDOM('<div id="hp-stem-demo"><div data-demo-app></div></div>',{url:'https://ckeyp8.github.io/hanzi-pocket-web/',runScripts:'outside-only',pretendToBeVisual:true}),w=dom.window,doc=w.document;
  Object.assign(w,{structuredClone,confirm:()=>true});w.HTMLDialogElement.prototype.showModal=function(){this.open=true;};w.HTMLDialogElement.prototype.close=function(){this.open=false;};
  const saved:any[]=[];w.fetch=async(url:any)=>({ok:true,json:async()=>JSON.parse(readFileSync('public/'+new URL(url).pathname.split('/').at(-1),'utf8'))})as any;
- (w as any).HPAppConfig={production:true,version:'3.1',offlineReady:true,initialPayload:{format:'hanzi-pocket',version:3,state:{panel:'review',mode:'normal',saved:['old-word'],customWords:[{id:'old-word',h:'量子计算',p:'liàngzǐ jìsuàn',m:'my own definition',source:'personal'}],groups:[{id:'course',name:'My course'}],memberships:{'old-word':['course']},progress:{'personal:normal:old-word':{attempts:4,correct:false}},queues:{},...initial}},save:async(value:any)=>{saved.push(structuredClone(value));},lookup:async()=>[{pinyin:'liàngzǐ jìsuàn',meaning:'quantum computing'}]};
+ (w as any).HPAppConfig={production:true,version:'3.1',offlineReady:true,initialPayload:{format:'hanzi-pocket',version:3,state:{panel:'review',mode:'normal',saved:['old-word'],customWords:[{id:'old-word',h:'量子计算',p:'liàngzǐ jìsuàn',m:'my own definition',source:'personal'}],groups:[{id:'course',name:'My course'}],memberships:{'old-word':['course']},progress:{'personal:normal:old-word':{attempts:4,correct:false}},queues:{},...initial}},save:async(value:any)=>{saved.push(structuredClone(value));},lookup:async()=>[{pinyin:'liàngzǐ jìsuàn',meaning:'quantum computing'}],...overrides};
  w.eval(readFileSync('public/pocket-quiz.js','utf8'));w.eval(readFileSync('public/pocket-app.js','utf8'));
- for(let i=0;i<100&&!doc.querySelector('.hp-nav');i++)await new Promise(r=>setTimeout(r,5));
+ for(let i=0;i<100&&!doc.querySelector('.hp-nav,.hp-study');i++)await new Promise(r=>setTimeout(r,5));
  const click=(action:string)=>{const scope=doc.querySelector('dialog[open]')||doc,button=scope.querySelector(`[data-action="${action}"]`)as HTMLButtonElement;expect(button,action).not.toBeNull();expect(button.disabled).toBe(false);button.click();};
  return {dom,w,doc,saved,click};
 }
@@ -36,6 +36,129 @@ describe('Approved production interface',()=>{
 });
 
 const csca=JSON.parse(readFileSync('public/csca-catalog.json','utf8'));
+const hsk=JSON.parse(readFileSync('public/hsk-catalog.json','utf8'));
+function search(context:any,value:string){const input=context.doc.querySelector('.hp-search input')as HTMLInputElement;input.value=value;input.dispatchEvent(new context.w.Event('input',{bubbles:true}));}
+const galleryWordIds=(doc:Document)=>[...doc.querySelectorAll('.hp-word-tile')].map((b:any)=>b.dataset.action.slice(5));
+
+describe('Search across HSK levels',()=>{
+ it('finds words across all levels and identifies each result level',async()=>{
+  const context=await boot(),{dom,doc,click}=context;click('nav-hsk');
+  expect(doc.querySelector('[aria-label="Search all HSK levels"]')).not.toBeNull();
+  expect(doc.querySelectorAll('.hp-word-tile')).toHaveLength(0);search(context,'学');
+  while(doc.querySelector('[data-action="more"]'))click('more');
+  const expected=hsk.filter((w:any)=>(w.hanzi+' '+w.meaning).includes('学'));
+  expect(new Set(galleryWordIds(doc))).toEqual(new Set(expected.map((w:any)=>w.id)));
+  expect(new Set(expected.map((w:any)=>w.level)).size).toBeGreaterThan(1);
+  for(const tile of doc.querySelectorAll('.hp-word-tile')){const word=hsk.find((w:any)=>'word-'+w.id===(tile as HTMLElement).dataset.action);expect(tile.textContent).toContain('HSK '+word.level);}
+  dom.window.close();
+ });
+ it('searches pinyin without tones and English meanings and clears safely',async()=>{
+  const context=await boot(),{dom,doc,click}=context;click('nav-hsk');search(context,'pengyou');
+  expect([...doc.querySelectorAll('.hp-word-tile span[lang]')].some(e=>e.textContent==='朋友')).toBe(true);
+  search(context,'friend');expect(doc.querySelectorAll('.hp-word-tile').length).toBeGreaterThan(0);
+  search(context,'no-such-word-98374');expect(doc.querySelectorAll('.hp-word-tile')).toHaveLength(0);expect(doc.body.textContent).toContain('No words match');
+  search(context,'');expect(doc.querySelectorAll('.hp-word-tile')).toHaveLength(0);expect(doc.querySelector('[data-action="deck-hsk-5"]')).not.toBeNull();dom.window.close();
+ });
+ it('keeps per-level search scoped and global results usable for saving',async()=>{
+  const context=await boot(),{dom,doc,click,saved}=context;click('nav-hsk');click('deck-hsk-1');search(context,'学');
+  expect(new Set(galleryWordIds(doc))).toEqual(new Set(hsk.filter((w:any)=>w.level===1&&w.hanzi.includes('学')).map((w:any)=>w.id)));
+  click('close-deck');search(context,'朋友');const id=galleryWordIds(doc)[0];click('word-'+id);click('save-'+id);
+  expect(saved.at(-1).state.saved).toContain(id);dom.window.close();
+ });
+});
+
+const characterEntries:Record<string,{pinyin:string;meaning:string}[]>={
+ '学':[{pinyin:'xué',meaning:'to learn; to study'}],'校':[{pinyin:'jiào',meaning:'to check'},{pinyin:'xiào',meaning:'school'}],
+ '朋':[{pinyin:'péng',meaning:'friend'}],'友':[{pinyin:'yǒu',meaning:'friend'}]
+};
+const characterLookup=async(h:string)=>characterEntries[h]??[];
+const characterInitial={panel:'pocket',activeGroup:'course',saved:['school','friend','repeat','outside'],customWords:[
+ {id:'school',h:'学校',p:'xuéxiào',m:'school',source:'personal'},
+ {id:'friend',h:'朋友',p:'péngyou',m:'friend',source:'personal'},
+ {id:'repeat',h:'A学·友2',p:'xué yǒu',m:'classmate',source:'personal'},
+ {id:'outside',h:'火',p:'huǒ',m:'fire',source:'personal'}
+],memberships:{school:['course'],friend:['course'],repeat:['course']},progress:{},queues:{}};
+async function characterStudy(initial:Record<string,unknown>={}){
+ const context=await boot({...characterInitial,...initial},{lookup:characterLookup});context.w.Math.random=()=>0;
+ context.click('flashcards-characters');context.click('start-group-course');
+ for(let i=0;i<200&&!context.doc.querySelector('.hp-study');i++)await new Promise(r=>setTimeout(r,5));
+ expect(context.doc.querySelector('.hp-study')).not.toBeNull();return context;
+}
+describe('Individual-character flashcards',()=>{
+ it('shuffles only distinct Chinese characters from the chosen category',async()=>{
+  const {dom,doc,click,saved}=await characterStudy(),ids=saved.at(-1).state.queues['group:course:characters'];
+  expect(new Set(ids)).toEqual(new Set(['学','校','朋','友'].map(c=>'character-'+c)));expect(ids).toHaveLength(4);
+  expect(ids).not.toEqual(['学','校','朋','友'].map(c=>'character-'+c));
+  const seen=[];for(let i=0;i<4;i++){seen.push(doc.querySelector('.hp-hanzi')!.textContent);click('reveal');click('correct');}
+  expect(new Set(seen)).toEqual(new Set(['学','校','朋','友']));expect(seen.every(c=>[...c!].length===1)).toBe(true);dom.window.close();
+ });
+ it('reveals character readings and meanings, shows source context, and saves the source word',async()=>{
+  const {dom,doc,click,saved}=await characterStudy({saved:['school'],memberships:{school:['course']},queues:{'group:course:characters':['character-校','character-学']}});
+  expect(doc.querySelector('.hp-hanzi')?.textContent).toBe('校');expect(doc.querySelector('.hp-pinyin')).toBeNull();click('reveal');
+  expect(doc.querySelector('.hp-pinyin')?.textContent).toContain('xiào');expect(doc.querySelector('.hp-pinyin')?.textContent).toContain('jiào');
+  expect(doc.querySelector('.hp-meaning')?.textContent).toContain('to check');click('reveal');
+  expect(doc.querySelector('dialog')?.textContent).toContain('学校');expect(doc.querySelector('dialog')?.textContent).toContain('Source word');
+  expect(doc.querySelector('[data-action="save-school"]')).not.toBeNull();expect(saved.at(-1).state.saved).not.toContain('character-校');dom.window.close();
+ });
+ it('keeps word progress separate, supports Undo, and resumes the exact remaining queue',async()=>{
+  const existing={'personal:normal:school':{attempts:7,correct:true}},context=await characterStudy({progress:existing}),{dom,doc,click,saved}=context;
+  const first=doc.querySelector('.hp-hanzi')!.textContent,queue=[...saved.at(-1).state.queues['group:course:characters']];click('reveal');click('incorrect');
+  expect(saved.at(-1).state.progress['character:characters:character-'+first]).toEqual({attempts:1,correct:false});
+  expect(saved.at(-1).state.progress['personal:normal:school']).toEqual(existing['personal:normal:school']);
+  click('undo');expect(doc.querySelector('.hp-hanzi')?.textContent).toBe(first);expect(saved.at(-1).state.queues['group:course:characters']).toEqual(queue);
+  expect(saved.at(-1).state.progress['character:characters:character-'+first]).toBeUndefined();click('reveal');click('correct');
+  const snapshot=structuredClone(saved.at(-1).state),next=doc.querySelector('.hp-hanzi')?.textContent;
+  const resumed=await boot(snapshot,{lookup:characterLookup});expect(resumed.doc.querySelector('.hp-hanzi')?.textContent).toBe(next);
+  resumed.click('reveal');expect(resumed.doc.querySelector('.hp-pinyin')?.textContent).not.toBe('');
+  expect(resumed.w.HPAppConfig.initialPayload.state.queues['group:course:characters']).toEqual(snapshot.queues['group:course:characters']);
+  resumed.dom.window.close();dom.window.close();
+ });
+ it('returns to classic whole-word cards and preserves the character preference across Dictation',async()=>{
+  const {dom,doc,click,saved}=await characterStudy();click('leave');click('mode-dictation');
+  expect(doc.querySelector('[aria-label="Flashcard mode"]')).toBeNull();click('mode-normal');
+  expect(doc.querySelector('[data-action="flashcards-characters"]')?.getAttribute('aria-pressed')).toBe('true');
+  click('flashcards-classic');click('start-group-course');expect(['学校','朋友','A学·友2']).toContain(doc.querySelector('.hp-hanzi')?.textContent);
+  expect(saved.at(-1).state.queues['group:course:normal']).toHaveLength(3);dom.window.close();
+ });
+ it('uses only the selected HSK level or STEM difficulty in character mode',async()=>{
+  const {dom,doc,w,click,saved}=await boot({}, {lookup:characterLookup});click('nav-hsk');click('deck-hsk-2');click('flashcards-characters');click('start');
+  for(let i=0;i<200&&!doc.querySelector('.hp-study');i++)await new Promise(r=>setTimeout(r,5));
+  const expected=new Set(hsk.filter((v:any)=>v.level===2).flatMap((v:any)=>[...v.hanzi].filter((c:string)=>/\p{Script=Han}/u.test(c))).map((c:string)=>'character-'+c));
+  expect(new Set(saved.at(-1).state.queues['hsk-2:characters'])).toEqual(expected);click('leave');click('nav-stem');click('deck-stem-subject-math');
+  const select=doc.querySelector('[data-stem-level]')as HTMLSelectElement;select.value='beginner';select.dispatchEvent(new w.Event('change',{bubbles:true}));click('start');
+  for(let i=0;i<200&&!doc.querySelector('.hp-study');i++)await new Promise(r=>setTimeout(r,5));
+  const stemChars=new Set(csca.words.filter((v:any)=>v.track==='stem'&&v.subjects.includes('math')&&v.officialRefs.some((r:any)=>r.stage==='beginner')).flatMap((v:any)=>[...v.h].filter((c:string)=>/\p{Script=Han}/u.test(c))).map((c:string)=>'character-'+c));
+  expect(new Set(saved.at(-1).state.queues['stem-subject-math:characters:beginner'])).toEqual(stemChars);dom.window.close();
+ });
+ it('allows navigation while the dictionary loads and does not start stale practice',async()=>{
+  let release!:(value:any)=>void;const dictionary=new Promise(resolve=>{release=resolve;});
+  const {dom,doc,click}=await boot(characterInitial,{lookup:()=>dictionary});click('flashcards-characters');click('start-group-course');
+  expect(doc.body.textContent).toContain('Preparing character');click('nav-hsk');release([]);await new Promise(r=>setTimeout(r,20));
+  expect(doc.querySelector('.hp-study')).toBeNull();expect(doc.querySelector('[aria-label="Search all HSK levels"]')).not.toBeNull();dom.window.close();
+ });
+ it('retains touch swipes and source-word collection actions for a single-character card',async()=>{
+  const {dom,doc,w,click,saved}=await characterStudy(),first=doc.querySelector('.hp-hanzi')!.textContent;
+  click('reveal');click('organize-current');expect(doc.querySelector('dialog')?.textContent).toContain('Organize 1 words');
+  const box=doc.querySelector('[name="groups"]')as HTMLInputElement;box.checked=true;doc.querySelector('form')!.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));
+  expect(saved.at(-1).state.saved.every((id:string)=>!id.startsWith('character-'))).toBe(true);
+  const app=doc.querySelector('[data-demo-app]')!,child=doc.querySelector('.hp-hanzi')!;
+  const pointer=(type:string,x:number,target:Element)=>{const event=new w.MouseEvent(type,{bubbles:true,cancelable:true,button:0,clientX:x,clientY:250});Object.defineProperties(event,{pointerId:{value:1},isPrimary:{value:true},pointerType:{value:'touch'}});target.dispatchEvent(event);};
+  pointer('pointerdown',190,child);pointer('pointermove',160,child);pointer('lostpointercapture',160,child);pointer('pointermove',70,app);pointer('pointerup',70,app);
+  expect(saved.at(-1).state.progress['character:characters:character-'+first]).toEqual({attempts:1,correct:true});expect(doc.querySelector('.hp-hanzi')?.textContent).not.toBe(first);dom.window.close();
+ });
+ it('reports dictionary failure without losing word progress or blocking Classic practice',async()=>{
+  const original={'personal:normal:school':{attempts:3,correct:true}},context=await boot({...characterInitial,progress:original},{lookup:async()=>{throw new Error('Dictionary unavailable');}}),{dom,doc,click,saved}=context;
+  click('flashcards-characters');click('start-group-course');await new Promise(r=>setTimeout(r,20));
+  expect(doc.body.textContent).toContain('Dictionary unavailable');expect(doc.querySelector('.hp-study')).toBeNull();click('flashcards-classic');click('start-group-course');
+  expect(['学校','朋友','A学·友2']).toContain(doc.querySelector('.hp-hanzi')?.textContent);expect(saved.at(-1).state.progress).toEqual(original);dom.window.close();
+ });
+ it('does not start stale practice after changing STEM difficulty during dictionary loading',async()=>{
+  let release!:(value:any)=>void;const dictionary=new Promise(resolve=>{release=resolve;});
+  const {dom,doc,w,click}=await boot({}, {lookup:()=>dictionary});click('nav-stem');click('deck-stem-subject-math');click('flashcards-characters');click('start');
+  const select=doc.querySelector('[data-stem-level]')as HTMLSelectElement;select.value='advanced';select.dispatchEvent(new w.Event('change',{bubbles:true}));release([]);await new Promise(r=>setTimeout(r,20));
+  expect(doc.querySelector('.hp-study')).toBeNull();expect((doc.querySelector('[data-stem-level]')as HTMLSelectElement).value).toBe('advanced');dom.window.close();
+ });
+});
 
 async function gestureStudy(revealed=true){
  const context=await boot({panel:'hsk',deck:'hsk-1',study:true,revealed,queues:{'hsk-1:normal':['hsk2026-1','hsk2026-2','hsk2026-3']}});
