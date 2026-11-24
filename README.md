@@ -1,6 +1,6 @@
 # Hanzi Pocket
 
-Hanzi Pocket 3.1.3: the light Editorial Focus app with science subject categories with full HSK 1–5, official CSCA STEM/foundation vocabulary, unlimited Flashcards and Dictation, mixed personal collections, generated listening quizzes, an offline dictionary and cumulative stroke discovery. The selected Fire Horse portrait is the app and Home Screen icon.
+Hanzi Pocket 3.2.0: the light Editorial Focus app with science subject categories with full HSK 1–5, official CSCA STEM/foundation vocabulary, unlimited Flashcards and Dictation, mixed personal collections, generated listening quizzes, an offline dictionary and cumulative stroke discovery. The selected Fire Horse portrait is the app and Home Screen icon.
 
 ## GitHub Pages
 
@@ -98,3 +98,26 @@ still resets the gesture. Both left/correct and right/incorrect work through
 this handoff, including quick flicks. The vertical practice lock is retained.
 Eight new tests reproduce the touch capture sequence missing from the prior
 mouse-based browser checks. No data migration or other interface changes.
+
+
+### Version 3.2.0 — HSK search and character flashcards
+
+The main HSK panel searches all 3,600 entries by Chinese characters, pinyin
+(with or without tones), or English meaning. Each result shows its HSK level.
+Opening an individual level retains the existing search within that level.
+Results keep the existing word details, saving, and collection actions.
+
+Flashcards now offers Classic (whole words) and Characters. Characters uses
+only the selected HSK level, STEM subject/difficulty, Pocket filter, or personal
+collection. It splits that category's words into distinct Chinese characters,
+ignores punctuation and Latin text, and shuffles the characters independently.
+The existing offline dictionary provides each character's own readings and
+meanings, including multiple pronunciations. Full details shows a source word
+from the selected category; Save word and collection actions apply to that word.
+
+Character results and remaining queues are separate from Classic and Dictation.
+Undo, touch swipes, new-first review, and reopening an unfinished queue remain
+available. The Flashcards submode is remembered when switching to Dictation.
+Words, collections, existing progress, database identity, and backups are retained;
+this update requires no data migration or reset. The full offline dictionary is
+loaded on first use of character practice and reused for the rest of the session.
