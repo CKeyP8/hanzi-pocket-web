@@ -1,6 +1,16 @@
 # Hanzi Pocket
 
-Hanzi Pocket 3.2.0: the light Editorial Focus app with science subject categories with full HSK 1–5, official CSCA STEM/foundation vocabulary, unlimited Flashcards and Dictation, mixed personal collections, generated listening quizzes, an offline dictionary and cumulative stroke discovery. The selected Fire Horse portrait is the app and Home Screen icon.
+Hanzi Pocket 3.2.1: the light Editorial Focus app with science subject categories with full HSK 1–5, official CSCA STEM/foundation vocabulary, unlimited Flashcards and Dictation, mixed personal collections, generated listening quizzes, an offline dictionary and cumulative stroke discovery. The selected Fire Horse portrait is the app and Home Screen icon.
+
+## 3.2.1: reliable saving and visible update prompts
+
+Saving a word now includes its selected collections. The app confirms success only after the database write finishes. If saving fails, the form and collection selections remain available for retry. Rapid duplicate submissions and practice gestures during a pending save are blocked.
+
+Available updates appear on the main screen with **Update now** and **Later**. The app checks when opening, returning to the foreground, or reconnecting. Prompts wait until an open form or practice session is left; installation finishes pending writes before restarting.
+
+The existing frontend and bottom navigation are retained. Side-menu designs, STEM-wide search and Daily Sentences are outside this release. No database migration or reset is required.
+
+Validation: 125 tests in 10 active-source test files pass. TypeScript, the 39 pinned bundled assets, and the production offline build pass. Device touch behavior remains covered by simulated gesture tests; no physical iPhone test is claimed.
 
 ## GitHub Pages
 

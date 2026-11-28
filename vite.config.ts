@@ -33,5 +33,5 @@ export default defineConfig({
     },
     devOptions: { enabled: false }
   })],
-  test: { environment: 'jsdom', setupFiles: ['./src/test/setup.ts'], restoreMocks: true }
+  test: { include: ['src/test/**/*.test.{ts,tsx}'], environment: 'jsdom', setupFiles: ['./src/test/setup.ts'], restoreMocks: true }
 });
