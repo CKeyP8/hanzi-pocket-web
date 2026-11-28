@@ -1,6 +1,7 @@
 import {readFileSync} from 'node:fs';
 import {createRequire} from 'node:module';
-import {describe,it,expect} from 'vitest';
+import {describe,it,expect,vi} from 'vitest';
+import {ExperienceDB,openExperience} from '../experience-storage';
 const {JSDOM}=createRequire(import.meta.url)('jsdom');
 
 async function boot(initial:Record<string,unknown>={},overrides:Record<string,unknown>={}){
@@ -35,6 +36,57 @@ describe('Approved production interface',()=>{
  });
 });
 
+describe('Confirmed word and collection saves',()=>{
+ it.each([['nav-hsk','deck-hsk-1'],['nav-stem','deck-stem-subject-math']])('saves collection selections with the bookmark button from %s and retains them after reopening',async(panel,category)=>{
+  const database=new ExperienceDB('confirmed-save-'+crypto.randomUUID());let first:any,second:any;
+  try{
+   const initial={panel:'review',saved:[],customWords:[],groups:[{id:'course',name:'My course'}],memberships:{},progress:{},queues:{}};
+   await database.state.put({id:'active',revision:1,payload:{format:'hanzi-pocket',version:3,state:initial}});
+   const store=await openExperience(database,async()=>{throw new Error('Must not migrate existing data');},[]);
+   first=await boot(store.initial.state,{save:store.save});const {doc,click}=first;
+   click(panel);click(category);const id=(doc.querySelector('.hp-word-tile')as HTMLElement).dataset.action!.slice(5);click('word-'+id);
+   (doc.querySelector('[name="groups"][value="course"]')as HTMLInputElement).checked=true;click('save-'+id);
+   await vi.waitFor(()=>expect(doc.querySelector('[data-demo-app]')?.hasAttribute('aria-busy')).toBe(false));
+   expect((doc.querySelector('[name="groups"]')as HTMLInputElement).checked).toBe(true);
+   const stored=(await database.state.get('active'))!.payload.state as any;expect(stored.saved).toContain(id);expect(stored.memberships[id]).toEqual(['course']);
+   first.dom.window.close();first=null;const reopened=await openExperience(database,async()=>{throw new Error('Must not migrate');},[]);
+   second=await boot(reopened.initial.state,{save:reopened.save});second.click('nav-pocket');second.click('group-course');expect(second.doc.querySelector('[data-action="word-'+id+'"]')).not.toBeNull();await reopened.flush();
+  }finally{first?.dom.window.close();second?.dom.window.close();await database.delete();}
+ });
+ it('keeps a new word and checked collections in the form until a write succeeds, and supports retry without duplicates',async()=>{
+  const {dom,w,doc,click,saved}=await boot();try{
+   click('nav-pocket');click('new-word');const form=doc.querySelector('form[data-form="word"]')as HTMLFormElement;
+   (form.elements.namedItem('hanzi')as HTMLInputElement).value='样例词';(form.elements.namedItem('pinyin')as HTMLInputElement).value='yànglì cí';(form.elements.namedItem('meaning')as HTMLTextAreaElement).value='example word';(form.querySelector('[name="groups"]')as HTMLInputElement).checked=true;
+   let rejectWrite!:(reason:Error)=>void;const pending=vi.fn(()=>new Promise<void>((_,reject)=>{rejectWrite=reject;}));(w as any).HPAppConfig.save=pending;
+   const submit=()=>form.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));submit();submit();
+   expect(pending).toHaveBeenCalledTimes(1);expect(doc.querySelector('dialog')).not.toBeNull();expect(doc.querySelector('[data-form-error]')?.textContent).toBe('Saving…');expect(doc.querySelector('.hp-toaster')?.textContent??'').not.toContain('Word saved');
+   rejectWrite(new Error('Storage temporarily unavailable'));await vi.waitFor(()=>expect(doc.querySelector('[data-form-error]')?.textContent).toContain('Try saving again'));
+   expect(form.isConnected).toBe(true);expect((form.elements.namedItem('hanzi')as HTMLInputElement).value).toBe('样例词');expect((form.querySelector('[name="groups"]')as HTMLInputElement).checked).toBe(true);
+   (w as any).HPAppConfig.save=async(value:any)=>saved.push(structuredClone(value));submit();await vi.waitFor(()=>expect(doc.querySelector('dialog')).toBeNull());
+   const stored=saved.at(-1).state,newWords=stored.customWords.filter((word:any)=>word.h==='样例词');expect(newWords).toHaveLength(1);expect(stored.memberships[newWords[0].id]).toEqual(['course']);expect(stored.progress['personal:normal:old-word'].attempts).toBe(4);
+  }finally{dom.window.close();}
+ });
+ it('does not overwrite a saved personal word when its edit fails',async()=>{
+  const {dom,w,doc,click,saved}=await boot();try{
+   click('nav-pocket');click('word-old-word');click('edit-word-old-word');const form=doc.querySelector('form')as HTMLFormElement;(form.elements.namedItem('meaning')as HTMLTextAreaElement).value='changed definition';
+   (w as any).HPAppConfig.save=async()=>{throw new Error('Write failed');};form.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));await vi.waitFor(()=>expect(doc.querySelector('[data-form-error]')?.textContent).toContain('Write failed'));
+   expect((form.elements.namedItem('meaning')as HTMLTextAreaElement).value).toBe('changed definition');(w as any).HPAppConfig.save=async(value:any)=>saved.push(structuredClone(value));click('close-modal');click('word-old-word');expect(doc.querySelector('dialog')?.textContent).toContain('my own definition');
+  }finally{dom.window.close();}
+ });
+});
+
+describe('Visible update prompts',()=>{
+ it('prompts on entry, supports Later, and keeps the Settings update action available',async()=>{
+  const {dom,doc,click}=await boot({}, {needsUpdate:true,update:async()=>{}});try{expect(doc.querySelector('[data-update-notice]')?.textContent).toContain('An update is available');click('update-later');expect(doc.querySelector('[data-update-notice]')).toBeNull();click('settings');expect(doc.querySelector('[data-action="install-update"]')).not.toBeNull();}finally{dom.window.close();}
+ });
+ it('does not rebuild an open word form when update availability changes, and prompts after leaving it',async()=>{
+  const {dom,w,doc,click}=await boot();try{click('nav-pocket');click('new-word');const field=doc.querySelector('[name="hanzi"]')as HTMLInputElement;field.value='保留';(w as any).HPAppConfig.needsUpdate=true;w.dispatchEvent(new w.Event('pocket-status'));expect(doc.querySelector('[name="hanzi"]')).toBe(field);expect(field.value).toBe('保留');expect(doc.querySelector('[data-update-notice]')).toBeNull();click('close-modal');expect(doc.querySelector('[data-update-notice]')).not.toBeNull();}finally{dom.window.close();}
+ });
+ it('reports installation errors and allows another attempt',async()=>{
+  const update=vi.fn(async()=>{throw new Error('Reconnect to update');}),{dom,doc,click}=await boot({}, {needsUpdate:true,update});try{click('install-update');await vi.waitFor(()=>expect(doc.querySelector('.hp-toaster')?.textContent).toContain('Reconnect to update'));expect(update).toHaveBeenCalledTimes(1);expect((doc.querySelector('[data-action="install-update"]')as HTMLButtonElement).disabled).toBe(false);}finally{dom.window.close();}
+ });
+});
+
 const csca=JSON.parse(readFileSync('public/csca-catalog.json','utf8'));
 const hsk=JSON.parse(readFileSync('public/hsk-catalog.json','utf8'));
 function search(context:any,value:string){const input=context.doc.querySelector('.hp-search input')as HTMLInputElement;input.value=value;input.dispatchEvent(new context.w.Event('input',{bubbles:true}));}
@@ -63,7 +115,7 @@ describe('Search across HSK levels',()=>{
   const context=await boot(),{dom,doc,click,saved}=context;click('nav-hsk');click('deck-hsk-1');search(context,'学');
   expect(new Set(galleryWordIds(doc))).toEqual(new Set(hsk.filter((w:any)=>w.level===1&&w.hanzi.includes('学')).map((w:any)=>w.id)));
   click('close-deck');search(context,'朋友');const id=galleryWordIds(doc)[0];click('word-'+id);click('save-'+id);
-  expect(saved.at(-1).state.saved).toContain(id);dom.window.close();
+  expect(saved.at(-1).state.saved).toContain(id);await vi.waitFor(()=>expect(doc.querySelector('[data-demo-app]')?.hasAttribute('aria-busy')).toBe(false));dom.window.close();
  });
 });
 
@@ -140,6 +192,7 @@ describe('Individual-character flashcards',()=>{
   const {dom,doc,w,click,saved}=await characterStudy(),first=doc.querySelector('.hp-hanzi')!.textContent;
   click('reveal');click('organize-current');expect(doc.querySelector('dialog')?.textContent).toContain('Organize 1 words');
   const box=doc.querySelector('[name="groups"]')as HTMLInputElement;box.checked=true;doc.querySelector('form')!.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));
+  await vi.waitFor(()=>expect(doc.querySelector('dialog')).toBeNull());
   expect(saved.at(-1).state.saved.every((id:string)=>!id.startsWith('character-'))).toBe(true);
   const app=doc.querySelector('[data-demo-app]')!,child=doc.querySelector('.hp-hanzi')!;
   const pointer=(type:string,x:number,target:Element)=>{const event=new w.MouseEvent(type,{bubbles:true,cancelable:true,button:0,clientX:x,clientY:250});Object.defineProperties(event,{pointerId:{value:1},isPrimary:{value:true},pointerType:{value:'touch'}});target.dispatchEvent(event);};
@@ -172,6 +225,13 @@ async function gestureStudy(revealed=true){
  return {...context,app,pointer,captures,releases};
 }
 describe('Horizontal practice gestures',()=>{
+ it('blocks swipes while a bookmark write is pending, then resumes practice without losing progress',async()=>{
+  const {dom,w,doc,click,pointer,saved}=await gestureStudy();try{
+   let finishWrite!:()=>void;let pending:any;(w as any).HPAppConfig.save=(value:any)=>{pending=structuredClone(value);return new Promise<void>(resolve=>{finishWrite=resolve;});};
+   const first=doc.querySelector('.hp-hanzi')?.textContent;click('save-current');pointer('pointerdown',190,250);pointer('pointermove',80,250);pointer('pointerup',80,250);expect(doc.querySelector('.hp-hanzi')?.textContent).toBe(first);expect(pending.state.progress['hsk:normal:hsk2026-1']).toBeUndefined();
+   finishWrite();await vi.waitFor(()=>expect(doc.querySelector('[data-demo-app]')?.hasAttribute('aria-busy')).toBe(false));(w as any).HPAppConfig.save=async(value:any)=>saved.push(structuredClone(value));pointer('pointerdown',190,250);pointer('pointermove',80,250);pointer('pointerup',80,250);expect(saved.at(-1).state.progress['hsk:normal:hsk2026-1']).toEqual({attempts:1,correct:true});
+  }finally{dom.window.close();}
+ });
  it.each([{dx:-110,correct:true},{dx:110,correct:false}])('ignores initial vertical drift before a horizontal swipe ($correct)',async({dx,correct})=>{
   const {dom,doc,pointer,saved,captures}=await gestureStudy();
   pointer('pointerdown',190,250);pointer('pointermove',192,284);pointer('pointermove',190+dx,292);
