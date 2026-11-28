@@ -48,7 +48,20 @@
   if(['math','physics','chemistry','computing','biology','engineering','csca-terms','csca-formulas','csca-lab','csca-data'].includes(s.deck)){s.deck='stem-all';s.panel='stem';s.stemTab='subjects';s.study=false;}
   state=s;if(!deck()){state.deck=null;state.study=false;}
  }
- function persist(){const payload={format:config.production?'hanzi-pocket':'hanzi-pocket-preview',version:config.production?3:2,state:{...state,history:[]}};if(config.save){void config.save(payload).catch(error=>{message=error.message+' Export a backup before closing.';render();});return;}try{localStorage.setItem(storageKey,JSON.stringify(payload));}catch{message='Storage is full or unavailable. Export a backup before closing.';}}
+ let saving=false,updating=false,updateDismissed=false;
+ async function persist(value=state){const payload={format:config.production?'hanzi-pocket':'hanzi-pocket-preview',version:config.production?3:2,state:{...value,history:[]}};if(config.save){await config.save(payload);return;}try{localStorage.setItem(storageKey,JSON.stringify(payload));}catch{throw new Error('Storage is full or unavailable. Export a backup before closing.');}}
+ const selectedGroups=form=>new FormData(form).getAll('groups').map(String).filter(id=>state.groups.some(g=>g.id===id));
+ async function commit(next,done){
+  if(saving||updating)return false;saving=true;cancelDrag();const controls=new Map([...app.querySelectorAll('button,input,textarea,select')].map(control=>[control,control.disabled]));
+  app.setAttribute('aria-busy','true');for(const control of controls.keys())control.disabled=true;
+  const form=app.querySelector('form[data-form]'),errorBox=form?.querySelector('[data-form-error]');if(errorBox)errorBox.textContent='Saving…';
+  let failure=null;
+  try{await persist(next);state=next;done();return true;}
+  catch(error){failure=error instanceof Error?error.message:String(error);return false;}
+  finally{saving=false;app.removeAttribute('aria-busy');for(const [control,disabled]of controls)control.disabled=disabled;if(failure&&errorBox?.isConnected){errorBox.textContent=failure+' Your changes are still here. Try saving again.';}else{if(failure)message=failure;render();}}
+ }
+ function updateNotice(){return config.needsUpdate&&!updateDismissed&&!modal&&!state.study?`<section class="hp-update-notice" data-update-notice aria-label="App update" role="status"><strong>An update is available</strong><p>Your words and progress will be kept.</p><div>${btn(updating?'Installing…':'Update now','install-update','hp-primary',updating?'disabled':'')}${btn('Later','update-later','hp-text',updating?'disabled':'')}</div></section>`:'';}
+ function syncUpdateNotice(){app.querySelector('[data-update-notice]')?.remove();const notice=updateNotice();if(notice)app.querySelector('.hp-main')?.insertAdjacentHTML('afterbegin',notice);}
  const keyFor=id=>byId.get(id).source+':'+state.mode+':'+id;
  function savedIds(){return state.saved.filter(id=>(state.pocketFilter==='all'||byId.get(id).source===state.pocketFilter)&&(!state.activeGroup||(state.memberships[id]??[]).includes(state.activeGroup)));}
  function deck(){if(state.deck==='pocket')return {id:'pocket',name:'My Pocket',kind:'Personal collection',ids:savedIds()};if(state.deck?.startsWith('group:')){const g=state.groups.find(g=>g.id===state.deck.slice(6));return g?{id:state.deck,name:g.name,kind:'Your collection',ids:state.saved.filter(id=>(state.memberships[id]??[]).includes(g.id))}:null;}const d=decks.find(d=>d.id===state.deck);return d?.subject&&state.stemLevel!=='all'?{...d,ids:d.ids.filter(id=>byId.get(id).officialRefs.some(r=>r.stage===state.stemLevel))}:d;}
@@ -110,13 +123,14 @@
   return `<dialog class="hp-modal" aria-label="${esc(title)}"><div class="hp-row hp-modal-heading"><h2>${esc(title)}</h2>${btn(icon('x'),'close-modal','hp-icon','aria-label="Close dialog"')}</div>${content}</dialog>`;
  }
  function render(){
+  if(saving)return;
   cancelDrag();
   if(state.study)app.innerHTML=study();else app.innerHTML=`<header class="hp-masthead"><span class="hp-brand">HANZI POCKET</span>${btn(icon('settings-2'),'settings','hp-icon','aria-label="Settings"')}</header><main class="hp-main">${state.deck&&['hsk','stem'].includes(state.panel)?selectedDeck():state.panel==='stem'?stemHome():state.panel==='hsk'?hskHome():state.panel==='pocket'?pocket():state.panel==='groups'?groups():state.panel==='quiz'?listeningQuiz():review()}</main>${nav()}<footer class="hp-credits">HSK 1–5 · STEM &amp; CSCA<br><a href="./DATA-ATTRIBUTION.txt">Data credits</a> · <a href="./HSK-LICENSE.txt">HSK license</a> · <a href="./CSCA-SOURCES.txt">CSCA sources</a></footer>`;
   document.documentElement.classList.toggle('hp-study-active',state.study);
   if(message)app.insertAdjacentHTML('beforeend',`<div class="hp-toaster" role="status">${esc(message)}</div>`);if(modal)app.insertAdjacentHTML('beforeend',dialog());
-  app.querySelector('dialog')?.showModal();window.lucide?.createIcons({attrs:{width:18,height:18}});
+  app.querySelector('dialog')?.showModal();syncUpdateNotice();window.lucide?.createIcons({attrs:{width:18,height:18}});
  }
- function finish(){persist();render();}
+ function finish(){void persist().catch(error=>{message=error.message+' Export a backup before closing.';render();});render();}
  function stopAudio(){voiceRequest++;try{speechSynthesis.cancel();}catch{}}
  function speak(slow=false){const w=byId.get(ensureQueue()[0]);if(w)return speakText(w.h,()=>state.study&&ensureQueue()[0]===w.id,slow);}
  async function speakText(text,isCurrent,slow=false){
@@ -134,10 +148,10 @@
   if(state.mode==='characters'){preparing=true;render();try{await prepareCharacters();}catch(error){if(request===practiceRequest){preparing=false;message=error.message;render();}return;}if(request!==practiceRequest)return;preparing=false;}
   stopAudio();state.study=true;state.revealed=false;state.hint=false;state.history=[];audioStatus='';if(d.level)state.lastHskLevel=d.level;ensureQueue();finish();if(state.mode==='dictation')void speak();
  }
- function ensureSaved(id){if(byId.has(id)&&!state.saved.includes(id))state.saved.push(id);}
- function save(id){id=sourceWord(byId.get(id))?.id;if(!id)return;ensureSaved(id);message='Saved to My Pocket · '+sourceName(byId.get(id));finish();}
+ function ensureSaved(id,value=state){if(byId.has(id)&&!value.saved.includes(id))value.saved.push(id);}
+ async function save(id){id=sourceWord(byId.get(id))?.id;if(!id)return;const next=structuredClone(state);ensureSaved(id,next);const form=modal==='detail'?app.querySelector('form[data-form="assign"]'):null;if(form)next.memberships[id]=selectedGroups(form);await commit(next,()=>{const names=(next.memberships[id]??[]).map(g=>next.groups.find(v=>v.id===g)?.name).filter(Boolean);message=names.length?'Saved to My Pocket and '+names.join(', ')+'.':'Saved to My Pocket · '+sourceName(byId.get(id));});}
  function answer(correct){
-  if(!state.study||!state.revealed)return;const q=ensureQueue(),id=q[0],key=keyFor(id),k=queueKey();
+  if(saving||updating||!state.study||!state.revealed)return;const q=ensureQueue(),id=q[0],key=keyFor(id),k=queueKey();
   state.history.push({id,key,old:state.progress[key]??null,queue:[...q],queueKey:k,deck:state.deck,panel:state.panel,activeGroup:state.activeGroup,pocketFilter:state.pocketFilter});if(state.history.length>8)state.history.shift();
   state.progress[key]={correct,attempts:(state.progress[key]?.attempts??0)+1};q.shift();
   if(!q.length&&state.deck==='pocket'){state.panel='hsk';state.deck='hsk-'+state.lastHskLevel;state.activeGroup=null;message='My Pocket reviewed. Continuing in HSK '+state.lastHskLevel+'.';ensureQueue();}
@@ -148,13 +162,15 @@
  function openGroup(id){state.activeGroup=id==='all'?null:id;state.panel='pocket';state.pocketFilter='all';state.deck=null;state.study=false;resetView();}
  app.addEventListener('input',e=>{if(e.target.matches('.hp-search input')){query=e.target.value;limit=60;app.querySelector('[data-gallery]').innerHTML=galleryContent();window.lucide?.createIcons({attrs:{width:18,height:18}});}});
  app.addEventListener('change',event=>{if(!event.target.matches('[data-stem-level]'))return;const level=event.target.value;if(!['all',...stages.map(s=>s[0])].includes(level))return;practiceRequest++;preparing=false;state.stemLevel=level;state.history=[];resetView();finish();});
- app.addEventListener('cancel',e=>{e.preventDefault();modal=null;render();},true);
+ app.addEventListener('cancel',e=>{e.preventDefault();if(saving||updating)return;modal=null;render();},true);
  app.addEventListener('click',async event=>{
+  if(saving||updating)return;
   const button=event.target.closest('button[data-action]'),a=button?.dataset.action;
   if(!a){if(state.study&&!modal&&!event.target.closest('button,input,textarea,select,a,dialog')&&Date.now()>=blockedUntil){state.revealed=true;finish();}return;}
   if(button.disabled)return;if(a==='reveal'){if(Date.now()<blockedUntil)return;if(state.revealed){detailId=ensureQueue()[0];pendingIds=[detailId];modal='detail';render();}else{state.revealed=true;finish();}return;}message='';practiceRequest++;preparing=false;
   if(a==='settings'){modal='settings';render();return;}
-  if(a==='install-update'){void config.update?.().catch(error=>{message=error.message;render();});return;}
+  if(a==='install-update'){if(!config.update)return;updating=true;render();try{await config.update();}catch(error){updating=false;message=error.message;render();}return;}
+  if(a==='update-later'){updateDismissed=true;render();return;}
   if(a==='export-csv'){void config.csv?.(state);return;}
   if(a==='dictionary-lookup'){const form=button.closest('form'),results=form.querySelector('[data-dictionary-results]'),h=form.elements.hanzi.value.trim();if(!h)return;results.textContent='Looking in your offline dictionary…';try{const choices=await config.lookup(h);if(!results.isConnected)return;results.replaceChildren();for(const choice of choices.slice(0,12)){const pick=document.createElement('button');pick.type='button';pick.className='hp-secondary';pick.style.marginBottom='8px';pick.textContent=choice.pinyin+' · '+choice.meaning;pick.onclick=()=>{if((form.elements.pinyin.value&&form.elements.pinyin.value!==choice.pinyin)||(form.elements.meaning.value&&form.elements.meaning.value!==choice.meaning)){if(!confirm('Replace the pronunciation and meaning with this dictionary entry?'))return;}form.elements.pinyin.value=choice.pinyin;form.elements.meaning.value=choice.meaning;};results.append(pick);}if(!choices.length)results.textContent='No exact entry. You can enter this word manually.';}catch{results.textContent='Dictionary unavailable. You can enter this word manually.';}return;}
   if(a.startsWith('edit-word-')){editingWord=a.slice(10);modal='new-word';render();return;}
@@ -204,26 +220,28 @@
   }
   finish();
  });
- app.addEventListener('submit',event=>{
-  const form=event.target;if(!form.dataset.form)return;event.preventDefault();const f=new FormData(form),groupIds=f.getAll('groups').map(String).filter(id=>state.groups.some(g=>g.id===id));
+ app.addEventListener('submit',async event=>{
+  const form=event.target;if(!form.dataset.form)return;event.preventDefault();if(saving||updating)return;const f=new FormData(form),groupIds=selectedGroups(form),next=structuredClone(state);let done;
   try{
    if(form.dataset.form==='group'){
     const name=String(f.get('name')??'').trim();if(!name||name.length>80)throw new Error('Enter a collection name between 1 and 80 characters.');
-    if(editingGroup){const g=state.groups.find(g=>g.id===editingGroup);if(!g)throw new Error('This collection no longer exists.');g.name=name;}
-    else{const id=crypto.randomUUID();state.groups.push({id,name});for(const wid of pendingIds){ensureSaved(wid);state.memberships[wid]=[...new Set([...(state.memberships[wid]??[]),id])];}}
-    modal=detailId?'detail':null;pendingIds=[];selected.clear();selecting=false;message='Collection saved.';
+    if(editingGroup){const g=next.groups.find(g=>g.id===editingGroup);if(!g)throw new Error('This collection no longer exists.');g.name=name;}
+    else{const id=crypto.randomUUID();next.groups.push({id,name});for(const wid of pendingIds){ensureSaved(wid,next);next.memberships[wid]=[...new Set([...(next.memberships[wid]??[]),id])];}}
+    done=()=>{modal=detailId?'detail':null;pendingIds=[];selected.clear();selecting=false;message='Collection saved.';};
    }else if(form.dataset.form==='assign'){
     const ids=detailId?[sourceWord(byId.get(detailId)).id]:pendingIds;if(!detailId&&!groupIds.length)throw new Error('Choose at least one collection.');
-    for(const id of ids){ensureSaved(id);state.memberships[id]=detailId?groupIds:[...new Set([...(state.memberships[id]??[]),...groupIds])];}
-    modal=null;pendingIds=[];selected.clear();selecting=false;message='Words saved. Their learning progress is unchanged.';
+    for(const id of ids){ensureSaved(id,next);next.memberships[id]=detailId?groupIds:[...new Set([...(next.memberships[id]??[]),...groupIds])];}
+    done=()=>{modal=null;pendingIds=[];selected.clear();selecting=false;message='Words saved. Their learning progress is unchanged.';};
    }else if(form.dataset.form==='word'){
     const h=String(f.get('hanzi')??'').normalize('NFKC').trim().replace(/\s+/g,''),p=String(f.get('pinyin')??'').trim(),m=String(f.get('meaning')??'').trim();
     if(!h||h.length>100||!/[\p{Script=Han}]/u.test(h)||!p||p.length>300||!m||m.length>2000)throw new Error('Enter Chinese characters, pinyin and a meaning.');
-    let w=editingWord?byId.get(editingWord):words.find(w=>w.h===h&&w.p===p);if(!w){w={id:'personal-'+crypto.randomUUID(),h,p,m,zh:'',en:'',source:'personal'};words.push(w);byId.set(w.id,w);state.customWords.push(w);}
-    if(editingWord){const old=byId.get(editingWord);if(old.source==='personal'){Object.assign(old,{h,p,m});w=old;}else if(old.h!==h||old.p!==p||old.m!==m){w={id:crypto.randomUUID(),h,p,m,source:'personal'};words.push(w);byId.set(w.id,w);state.saved=state.saved.map(id=>id===old.id?w.id:id);state.memberships[w.id]=state.memberships[old.id]??[];delete state.memberships[old.id];for(const mode of ['normal','dictation']){const prior=state.progress[old.source+':'+mode+':'+old.id];if(prior)state.progress['personal:'+mode+':'+w.id]=structuredClone(prior);}}state.customWords=words.filter(v=>v.source==='personal');editingWord=null;}
-    ensureSaved(w.id);state.memberships[w.id]=[...new Set([...(state.memberships[w.id]??[]),...groupIds])];modal=null;message='Word saved to My Pocket.';
+    let w=editingWord?byId.get(editingWord):words.find(w=>w.h===h&&w.p===p);if(!w)w={id:'personal-'+crypto.randomUUID(),h,p,m,zh:'',en:'',source:'personal'};
+    if(editingWord){const old=byId.get(editingWord);if(!old)throw new Error('This word no longer exists.');if(old.source==='personal')w={...old,h,p,m};else if(old.h!==h||old.p!==p||old.m!==m){w={id:crypto.randomUUID(),h,p,m,source:'personal'};next.saved=next.saved.map(id=>id===old.id?w.id:id);next.memberships[w.id]=next.memberships[old.id]??[];delete next.memberships[old.id];for(const mode of ['normal','dictation']){const prior=next.progress[old.source+':'+mode+':'+old.id];if(prior)next.progress['personal:'+mode+':'+w.id]=structuredClone(prior);}}}
+    if(w.source==='personal'){next.customWords=next.customWords.filter(v=>v.id!==w.id);next.customWords.push(w);}
+    if(!next.saved.includes(w.id))next.saved.push(w.id);next.memberships[w.id]=[...new Set([...(next.memberships[w.id]??[]),...groupIds])];
+    done=()=>{const index=words.findIndex(v=>v.id===w.id);if(index<0)words.push(w);else words[index]=w;byId.set(w.id,w);editingWord=null;modal=null;message='Word saved to My Pocket.';};
    }
-   finish();
+   if(done)await commit(next,done);
   }catch(e){form.querySelector('[data-form-error]').textContent=e.message;}
  });
  function cancelDrag(){
@@ -232,6 +250,7 @@
   if(previous?.captured)try{app.releasePointerCapture?.(previous.id);}catch{/* The browser may already have released it. */}
  }
  app.addEventListener('pointerdown',e=>{
+  if(saving||updating)return;
   if(e.isPrimary===false){cancelDrag();return;}
   if(!state.study||modal||e.button!==0||e.target.closest('button:not(.hp-reveal),a,input,select,textarea,dialog'))return;
   cancelDrag();blockedUntil=0;drag={x:e.clientX,y:e.clientY,id:e.pointerId,word:ensureQueue()[0],revealed:state.revealed,horizontal:false,moved:false,captured:false};
@@ -257,6 +276,6 @@
  app.addEventListener('lostpointercapture',e=>{if(e.target===app&&drag?.id===e.pointerId)cancelDrag();});
  window.addEventListener('blur',cancelDrag);
  app.addEventListener('change',async event=>{const field=event.target;if(!field.matches('[data-restore-backup],[data-import-csv]')||!field.files?.[0])return;try{const text=await field.files[0].text();if(field.matches('[data-restore-backup]')){if(!confirm('Restore this Pocket backup? A recovery copy of your current Pocket will be kept.'))return;await config.restore(text);}else await config.importCSV(text,structuredClone(state));}catch(error){message=error.message;render();}});
- window.addEventListener('pocket-status',()=>{if(modal==='settings')render();});
+ window.addEventListener('pocket-status',()=>{if(saving)return;if(modal==='settings')render();else syncUpdateNotice();});
  window.addEventListener('pagehide',stopAudio);window.speechSynthesis?.getVoices();restore();if(state.study&&state.mode==='characters'){try{await prepareCharacters();}catch(error){state.study=false;message=error.message;}}render();
 })().catch(error=>{const view=document.querySelector('[data-demo-app]');view.replaceChildren();const text=document.createElement('p');text.textContent=error.message;const retry=document.createElement('button');retry.textContent='Reload';retry.onclick=()=>location.reload();view.append(text,retry);});

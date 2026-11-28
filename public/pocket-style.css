@@ -44,3 +44,8 @@ html.hp-study-active,html.hp-study-active body{height:100%;overflow:hidden;overs
 #hp-stem-demo .hp-word-tile.hp-hsk-result{padding-bottom:24px}
 #hp-stem-demo .hp-word-tile.hp-hsk-result>span:first-child{font-size:clamp(22px,7vw,28px);line-height:1.25}
 #hp-stem-demo .hp-word-tile.hp-hsk-result.hp-long-word>span:first-child{font-size:clamp(16px,5.2vw,20px)}
+#hp-stem-demo .hp-update-notice{padding:16px;margin:0 0 22px;background:var(--hp-wash);border-radius:12px;color:var(--hp-ink)}
+#hp-stem-demo .hp-update-notice strong{font-size:16px;font-weight:600}
+#hp-stem-demo .hp-update-notice p{margin:6px 0 12px;font-size:14px}
+#hp-stem-demo .hp-update-notice>div{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+#hp-stem-demo .hp-update-notice .hp-primary{width:auto;margin:0}
